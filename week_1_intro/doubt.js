@@ -1,6 +1,6 @@
 const obj = {
     firstName: 'Narendra',
-    lastName: 'Mishra',
+    
 
     get fName() {
         return this.firstName
@@ -14,7 +14,7 @@ const obj = {
         this.lastName = name
     },
 }
-console.log(obj.lName)
-obj.lName = 'Mourya'
-obj.lName = console.log(obj.lName)
+
+
+
 console.log(obj.lName)
