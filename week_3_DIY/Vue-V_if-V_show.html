@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>v-if vs v-show Demo (Vue 2)</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    .box {
+      width: 150px;
+      height: 150px;
+      background-color: gold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      border-radius: 10px;
+      margin: 10px;
+    }
+    button {
+      margin: 10px;
+      padding: 6px 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2>🎩 Magic Box Demo (v-if vs v-show)</h2>
+
+    <button @click="showBox = !showBox">
+      Toggle Box
+    </button>
+
+    <h3>Using v-if:</h3>
+    <div v-if="showBox" class="box">v-if Box</div>
+
+    <h3>Using v-show:</h3>
+    <div v-show="showBox" class="box">v-show Box</div>
+
+    <p>
+      💡 <b>Try this:</b> Open <b>Developer Tools → Elements tab</b> and toggle.  
+      Notice: the <code>v-if</code> box disappears from the DOM,  
+      but the <code>v-show</code> box just changes its <code>display</code> style.
+    </p>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        showBox: true
+      }
+    })
+  </script>
+</body>
+</html>
