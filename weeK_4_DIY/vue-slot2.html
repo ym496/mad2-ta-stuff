@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vue 2 Named Slots</title>
+  <style>
+    body { font-family: sans-serif; }
+    #app { display: flex; gap: 20px; }
+    .profile-card {
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 15px;
+      width: 300px;
+      background: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header { 
+      border-bottom: 1px solid #ddd; 
+      padding-bottom: 10px; 
+      min-height: 20px;
+      color: #333;
+    }
+    .card-body { 
+      padding: 15px 0; 
+      min-height: 50px;
+      color: #555;
+    }
+    .card-footer { 
+      border-top: 1px solid #ddd; 
+      padding-top: 10px; 
+      min-height: 20px;
+      font-size: 0.9em;
+      color: #777;
+    }
+    img { max-width: 100%; border-radius: 5px; }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <profile-card>
+      <h3 slot="header">Darshan Ganatra</h3>
+      <img slot="body" src="https://placehold.co/300x150/42b883/FFF?text=Profile+Pic">
+      <p slot="footer">Teaching Assistant</p>
+    </profile-card>
+
+    <profile-card>
+      <h3 slot="header">Modern App Development 2</h3>
+      <p slot="body">Learn about Vue components, reactivity, and more!</p>
+      <button slot="footer">Enroll Now</button>
+    </profile-card>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <script>
+    // Define the Child Component with named slots
+    Vue.component('profile-card', {
+      template: `
+        <div class="profile-card">
+          <div class="card-header">
+            <slot name="header"></slot>
+          </div>
+          <div class="card-body">
+            <slot name="body"></slot>
+          </div>
+          <div class="card-footer">
+            <slot name="footer"></slot>
+          </div>
+        </div>
+      `
+    });
+
+    // Create the main Vue instance
+    new Vue({
+      el: '#app'
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple v-bind vs v-html</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      padding-top: 40px;
+      background-color: #f4f4f9;
+    }
+    #app {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 500px;
+    }
+    .example {
+      margin-bottom: 25px;
+    }
+    h2 {
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+    input[type="text"], input[type="color"] {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      margin-top: 5px;
+    }
+    input[type="color"] {
+      padding: 0; /* Color pickers look better without padding */
+      height: 35px;
+    }
+    .preview-box {
+      border: 1px dashed #ccc;
+      padding: 10px;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+    a {
+      /* Smooth color transition */
+      transition: color 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <div class="example">
+      <h2>🔗 v-bind: Controls Attributes</h2>
+      
+      <label>Enter a URL for the link:</label>
+      <input v-model="linkUrl" type="text">
+      
+      <label>Choose a color for the link:</label>
+      <input v-model="linkColor" type="color">
+      
+      <p>
+        <a 
+          v-bind:href="linkUrl" 
+          v-bind:style="{ color: linkColor }"
+          target="_blank"
+        >
+          Visit Your Link
+        </a>
+      </p>
+    </div>
+
+    <div class="example">
+      <h2>✏️ v-html: Renders HTML Content</h2>
+      <label>Enter text with HTML (try `<b>bold</b>` or `<i>italic</i>`):</label>
+      <input v-model="rawHtmlContent" type="text">
+      
+      <p>Preview:</p>
+      <div class="preview-box" v-html="rawHtmlContent"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        linkUrl: 'https://vuejs.org',
+        linkColor: '#42b883', // A nice default green color
+        rawHtmlContent: 'Hello, <b>Students!</b>'
+      }
+    })
+  </script>
+
+</body>
+</html>

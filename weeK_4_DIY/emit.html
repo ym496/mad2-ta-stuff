@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vue 2 $emit Example</title>
+  <style>
+    body { font-family: sans-serif; }
+    #app {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    .discount-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #42b883; /* Vue Green */
+      color: white;
+      font-size: 1.1em;
+    }
+    .discount-banner button {
+      background: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <h2>Welcome to Our Store!</h2>
+    <p>Here are some of our products.</p>
+    
+    <discount-banner
+      v-if="isBannerVisible"
+      v-on:dismiss="hideBanner"
+    ></discount-banner>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <script>
+    // 1. Define the Child Component
+    Vue.component('discount-banner', {
+      template: `
+        <div class="discount-banner">
+          <span>Get 20% off today!</span>
+          <button v-on:click="closeBanner">X</button>
+        </div>
+      `,
+      methods: {
+        closeBanner() {
+          // This EMITS a custom event named 'dismiss' up to the parent.
+          console.log('Child is emitting the "dismiss" event!');
+          this.$emit('dismiss'); 
+        }
+      }
+    });
+
+    // 2. Create the Parent Vue instance
+    new Vue({
+      el: '#app',
+      data: {
+        isBannerVisible: true
+      },
+      methods: {
+        // This method lives in the PARENT. It runs when it hears the 'dismiss' event.
+        hideBanner() {
+          console.log('Parent heard the event and is hiding the banner.');
+          this.isBannerVisible = false;
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
