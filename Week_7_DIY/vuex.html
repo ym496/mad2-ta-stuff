@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Vuex Demo - Single File</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://unpkg.com/vuex@3.6.2/dist/vuex.js"></script>
+</head>
+<body>
+
+<div id="app">
+  <h1>Count: {{ $store.state.count }}</h1>
+  <h3>Double Count (Getter): {{ $store.getters.doubleCount }}</h3>
+
+  <button @click="$store.commit('INCREMENT')">Increment (Mutation)</button>
+  <button @click="$store.dispatch('incrementAfter1Sec')">Increment After 1s (Action)</button>
+</div>
+
+<script>
+const store = new Vuex.Store({
+  state: {
+    count: 0
+  },
+
+  getters: {
+    doubleCount(state) {
+      return state.count * 2;
+    }
+  },
+
+  mutations: {
+    INCREMENT(state) {
+      state.count++;
+    }
+  },
+
+  actions: {
+    incrementAfter1Sec({ commit }) {
+      setTimeout(() => {
+        commit('INCREMENT');
+      }, 5000);
+    }
+  }
+});
+
+new Vue({
+  el: '#app',
+  store
+});
+</script>
+
+</body>
+</html>

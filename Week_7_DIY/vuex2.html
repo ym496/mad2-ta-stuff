@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Vuex Easy Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://unpkg.com/vuex@3.6.2/dist/vuex.js"></script>
+</head>
+
+<body>
+<div id="app">
+
+  <h2>🛍 Product Store</h2>
+
+  <div v-for="product in products" :key="product.name" style="margin-bottom: 10px;">
+    {{ product.name }} - ₹{{ product.price }}
+    <button @click="add(product)">Add to Cart</button>
+  </div>
+
+  <hr>
+
+  <h3>🛒 Cart ( {{ cartCount }} items )</h3>
+  <p>Total Price: ₹{{ totalPrice }}</p>
+
+  <button @click="checkout">Checkout (Async Action)</button>
+
+</div>
+
+<script>
+// Vuex Store
+const store = new Vuex.Store({
+  state: {
+    cart: []
+  },
+
+  getters: {
+    cartCount(state) {
+      return state.cart.length;
+    },
+    totalPrice(state) {
+      return state.cart.reduce((sum, item) => sum + item.price, 0);
+    }
+  },
+
+  mutations: {
+    ADD_TO_CART(state, product) {
+      state.cart.push(product);
+    },
+    CLEAR_CART(state) {
+      state.cart = [];
+    }
+  },
+
+  actions: {
+    checkout({ commit, state }) {
+      alert("Ordering... please wait 1 second");
+      setTimeout(() => {
+        console.log("Order placed:", state.cart);
+        commit("CLEAR_CART");         // ✅ Mutation from action
+        alert("✅ Order Successful! Cart Cleared.");
+      }, 2000);
+    }
+  }
+});
+
+// Vue App
+new Vue({
+  el: "#app",
+  store,
+
+  data() {
+    return {
+      products: [
+        { name: "Perfume", price: 200 },
+        { name: "Deodorant", price: 150 },
+        { name: "Body Spray", price: 100 }
+      ]
+    };
+  },
+
+  computed: {
+    cartCount() {
+      return this.$store.getters.cartCount;
+    },
+    totalPrice() {
+      return this.$store.getters.totalPrice;
+    }
+  },
+
+  methods: {
+    add(product) {
+      this.$store.commit("ADD_TO_CART", product); // ✅ commit = direct change
+    },
+    checkout() {
+      this.$store.dispatch("checkout"); // ✅ dispatch = action (async)
+    }
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vuex Modules Easy Example</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuex@3"></script>
+</head>
+
+<body>
+  <div id="app">
+    <h1>Vuex Modules Example</h1>
+
+    <!-- COUNTER UI -->
+    <section style="border:1px solid #aaa; padding:10px; margin-bottom:20px;">
+      <h2>Counter Module</h2>
+      <p>Count Value: {{ counter }}</p>
+      <button @click="increment"> + Increment </button>
+      <button @click="decrement"> - Decrement </button>
+    </section>
+
+    <!-- TODO UI -->
+    <section style="border:1px solid #aaa; padding:10px;">
+      <h2>Todo Module</h2>
+      <input v-model="newTodo" placeholder="Add a task" />
+      <button @click="addTodo">Add</button>
+
+      <ul>
+        <li v-for="(todo, index) in todos" :key="index">
+          {{ todo }}
+          <button @click="removeTodo(index)">❌</button>
+        </li>
+      </ul>
+    </section>
+
+  </div>
+
+  <script>
+    // ---------------- COUNTER MODULE ----------------
+    const counterModule = {
+      namespaced: true,
+      state: {
+        count: 0
+      },
+      mutations: {
+        INCREMENT(state) { state.count++; },
+        DECREMENT(state) { state.count--; }
+      },
+      actions: {
+        incrementAction({ commit }) { commit('INCREMENT'); },
+        decrementAction({ commit }) { commit('DECREMENT'); }
+      },
+      getters: {
+        getCount(state) { return state.count; }
+      }
+    };
+
+    // ---------------- TODO MODULE ----------------
+    const todoModule = {
+      namespaced: true,
+      state: {
+        todos: []
+      },
+      mutations: {
+        ADD_TODO(state, todo) { state.todos.push(todo); },
+        REMOVE_TODO(state, index) { state.todos.splice(index, 1); }
+      },
+      actions: {
+        addTodoAction({ commit }, todo) { commit('ADD_TODO', todo); },
+        removeTodoAction({ commit }, index) { commit('REMOVE_TODO', index); }
+      },
+      getters: {
+        getTodos(state) { return state.todos; }
+      }
+    };
+
+    // ---------------- STORE ----------------
+    const store = new Vuex.Store({
+      modules: {
+        counter: counterModule,
+        todo: todoModule
+      }
+    });
+
+    // ---------------- VUE INSTANCE ----------------
+    new Vue({
+      el: '#app',
+      store,
+      data() {
+        return {
+          newTodo: ""
+        };
+      },
+      computed: {
+        counter() {
+          return this.$store.getters["counter/getCount"];
+        },
+        todos() {
+          return this.$store.getters["todo/getTodos"];
+        }
+      },
+      methods: {
+        increment() {
+          this.$store.dispatch("counter/incrementAction");
+        },
+        decrement() {
+          this.$store.dispatch("counter/decrementAction");
+        },
+        addTodo() {
+          if(this.newTodo.trim() !== "") {
+            this.$store.dispatch("todo/addTodoAction", this.newTodo);
+            this.newTodo = "";
+          }
+        },
+        removeTodo(index) {
+          this.$store.dispatch("todo/removeTodoAction", index);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

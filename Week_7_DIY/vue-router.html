@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vue Router Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://unpkg.com/vue-router@3.5.4/dist/vue-router.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    nav a { margin-right: 15px; text-decoration: none; color: blue; }
+    nav a.router-link-exact-active { font-weight: bold; color: green; }
+    .card { border: 1px solid #ddd; padding: 12px; margin-top: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <h2>Vue Router Example</h2>
+
+  <!-- Navigation -->
+  <nav>
+    <router-link to="/">Home</router-link>
+    <router-link to="/about">About</router-link>
+    <router-link to="/users">Users</router-link>
+  </nav>
+
+  <!-- View where pages render -->
+  <router-view></router-view>
+</div>
+
+<script>
+/* ---------------------------
+   COMPONENTS
+----------------------------*/
+
+const Home = {
+  template: `
+    <div class="card">
+      <h3>Home Page</h3>
+      <p>Welcome! This is the homepage.</p>
+      <button @click="goToUsers">Go to Users (Programmatic)</button>
+    </div>
+  `,
+  methods: {
+    goToUsers(){
+      this.$router.push('/users')
+    }
+  }
+};
+
+const About = {
+  template: `
+    <div class="card">
+      <h3>About Page</h3>
+      <p>This is a tutorial for Vue Router.</p>
+    </div>
+  `
+};
+
+const Users = {
+  template: `
+    <div class="card">
+      <h3>Users List</h3>
+      <p>Click a user to view profile:</p>
+      <ul>
+        <li><router-link to="/users/1">User 1</router-link></li>
+        <li><router-link to="/users/2">User 2</router-link></li>
+        <li><router-link to="/users/3">User 3</router-link></li>
+      </ul>
+
+      <!-- Child route renders here -->
+      <router-view></router-view>
+    </div>
+  `
+};
+
+const UserProfile = {
+  template: `
+    <div class="card">
+      <h4>User Profile</h4>
+      <p>User ID: {{ $route.params.id }}</p>
+      <p>(This is a dynamic route 👇)</p>
+      <pre>/users/:id</pre>
+    </div>
+  `
+};
+
+/* ---------------------------
+   ROUTER SETUP
+----------------------------*/
+
+const router = new VueRouter({
+  mode: "hash", // or "history"
+  routes: [
+    { path: "/", component: Home },
+    { path: "/about", component: About },
+    { 
+      path: "/users", 
+      component: Users,
+      children: [
+        { path: ":id", component: UserProfile } // Nested route
+      ]
+    }
+  ]
+});
+
+/* ---------------------------
+   NAVIGATION GUARD
+----------------------------*/
+router.beforeEach((to, from, next) => {
+  console.log("Navigating from:", from.path, "to:", to.path);
+  next(); // always allow for demo
+});
+
+/* ---------------------------
+   CREATE APP
+----------------------------*/
+new Vue({
+  el: "#app",
+  router
+});
+</script>
+
+</body>
+</html>
