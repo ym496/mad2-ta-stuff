@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Web Security Demos — XSS • CSRF • CORS (Student-facing)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --muted:#666; --ok:#157f3b; --bad:#b02121; --bg:#f5f6f8; }
+    body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial; margin:18px; background:var(--bg); color:#111}
+    .wrap{max-width:980px;margin:0 auto}
+    header{display:flex;align-items:baseline;gap:12px}
+    h1{margin:0;font-size:1.25rem}
+    .lead{color:var(--muted);margin-top:6px}
+    .grid{display:grid;gap:14px;margin-top:14px}
+    .card{background:#fff;border:1px solid #e6e6e8;border-radius:10px;padding:14px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button{padding:8px 10px;border-radius:8px;border:1px solid #bdbdbf;background:#fff;cursor:pointer}
+    .output{margin-top:10px;padding:10px;min-height:56px;border-radius:8px;border:1px dashed #ddd;background:#fff}
+    code{background:#f1f1f1;padding:2px 6px;border-radius:6px;font-family:monospace}
+    pre.snippet{background:#0f1720;color:#dbeafe;padding:10px;border-radius:8px;overflow:auto;font-size:13px}
+    .muted{color:var(--muted);font-size:0.95rem}
+    .ok{color:var(--ok);font-weight:700}
+    .bad{color:var(--bad);font-weight:700}
+    footer{margin-top:12px;color:var(--muted);font-size:0.95rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Web Security — Interactive Demos</h1>
+        <div class="lead">Simple, student-facing demos for XSS, CSRF and CORS. Buttons are prefilled — no typing required.</div>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <!-- DEFINITIONS -->
+      <div class="card">
+        <strong>Short definitions</strong>
+        <div class="muted" style="margin-top:8px">
+          <strong>XSS</strong>: attacker-supplied code runs inside other users' browsers. (Example: a comment that contains JavaScript.)<br>
+          <strong>CSRF</strong>: attacker tricks your logged-in browser into making requests that perform actions for you. (Defence: require unpredictable token.)<br>
+          <strong>CORS</strong>: browser rule controlling whether a page from origin A can read responses from origin B; servers explicitly allow origins.
+        </div>
+      </div>
+
+      <!-- XSS -->
+      <div class="card" id="xssCard">
+        <strong>XSS — Unsafe vs Safe JavaScript (clear, runnable)</strong>
+        <div class="muted" style="margin-top:8px">
+          This demo shows the exact difference between injecting user HTML (unsafe) and treating it as text (safe). Use the buttons below.
+        </div>
+
+        <div class="controls">
+          <button onclick="xssLoad(0)">Payload: Normal text</button>
+          <button onclick="xssLoad(1)">Payload: Bold HTML</button>
+          <button onclick="xssLoad(2)">Payload: Classic XSS (image onerror alert)</button>
+          <button onclick="xssUnsafe()">Render UNSAFE (innerHTML) — may run JS</button>
+          <button onclick="xssSafe()">Render SAFE (textContent) — never runs JS</button>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <div style="flex:1">
+            <div class="muted">Simulated user input (payload):</div>
+            <div id="xssPayload" class="output"></div>
+          </div>
+          <div style="flex:1">
+            <div class="muted">Rendered page (what others see):</div>
+            <div id="xssRender" class="output" aria-live="polite">(render area)</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="muted">How the code looks (frontend):</div>
+          <pre class="snippet">
+// UNSAFE (bad) — DO NOT use
+element.innerHTML = userInput;
+
+// SAFE (good) — treats input as text
+element.textContent = userInput;
+          </pre>
+          <div class="muted">How the code looks (server-side escaping example):</div>
+          <pre class="snippet">
+// Very simple server-side escape (JS example)
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// then send escapeHtml(userInput) into HTML
+          </pre>
+        </div>
+      </div>
+
+      <!-- CSRF -->
+      <div class="card" id="csrfCard">
+        <strong>CSRF — Simulated Bank (legitimate vs attacker vs vulnerable)</strong>
+        <div class="muted" style="margin-top:8px">
+          The demo has three clear behaviors: Legitimate requests (with token) succeed, attacker requests (no token) are blocked, and vulnerable server (no token check) accepts attacker requests.
+        </div>
+
+        <div class="controls" style="margin-top:10px">
+          <button onclick="demoLogin()">Log in as <code>alice</code></button>
+          <button onclick="demoShowBalance()">Show Balance</button>
+          <button onclick="demoLegitTransfer()">Legitimate transfer (sends token)</button>
+          <button onclick="demoAttackerTransfer()">Attacker transfer (no token)</button>
+          <button onclick="demoVulnerableAttack()">Vulnerable server: attacker succeeds</button>
+          <button onclick="demoLogout()">Log out</button>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="muted">State:</div>
+          <div id="csrfState" class="output">Not logged in</div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="muted">Console (most recent on top):</div>
+          <div id="csrfConsole" class="output" aria-live="polite">Ready. Click "Log in" to start.</div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="muted">How the code looks (client):</div>
+          <pre class="snippet">
+// Client includes CSRF token (e.g., as header)
+fetch('/transfer', {
+  method: 'POST',
+  headers: { 'X-CSRF-Token': window.csrfToken },
+  body: JSON.stringify({ amount: 100 })
+});
+          </pre>
+
+          <div class="muted">How the code looks (server):</div>
+          <pre class="snippet">
+// Server checks token (pseudo-code)
+app.post('/transfer', (req, res) => {
+  const session = req.sessionId;
+  const expected = server.csrf[session];
+  if (!req.headers['x-csrf-token'] || req.headers['x-csrf-token'] !== expected) {
+    return res.status(403).send('invalid csrf');
+  }
+  // proceed with transfer
+});
+          </pre>
+        </div>
+      </div>
+
+      <!-- CORS -->
+      <div class="card" id="corsCard">
+        <strong>CORS — Simulated allowlist</strong>
+        <div class="muted" style="margin-top:8px">
+          The demo shows allowed and blocked origin fetches. Server sets <code>Access-Control-Allow-Origin</code> for allowed origins.
+        </div>
+
+        <div class="controls" style="margin-top:10px">
+          <button onclick="corsSim('https://myapp.example')">From <code>https://myapp.example</code> (ALLOWED)</button>
+          <button onclick="corsSim('https://evil.example')">From <code>https://evil.example</code> (BLOCKED)</button>
+          <button onclick="corsSim('https://partner.example')">From <code>https://partner.example</code> (ALLOWED)</button>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="muted">API response (simulated):</div>
+          <div id="corsConsole" class="output">(press a button)</div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="muted">How the code looks (server header):</div>
+          <pre class="snippet">
+// Server sets this header for allowed origin
+res.setHeader('Access-Control-Allow-Origin', 'https://myapp.example');
+// or for many origins, echo the Origin when allowed
+          </pre>
+
+          <div class="muted">How the code looks (client fetch):</div>
+          <pre class="snippet">
+// Browser fetch from a page at origin X
+fetch('https://api.example/data')
+  .then(r => r.json())
+  .then(data => console.log(data));
+          </pre>
+        </div>
+      </div>
+
+      <footer class="card">
+        <div class="muted">This file is ready to present — no server required. CSRF & CORS are simulated to show the exact behaviors, XSS shows only Unsafe vs Safe render modes so students see the difference immediately.</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // XSS demo (unsafe vs safe)
+    // ----------------------------
+    const xssSamples = [
+      "Hello — thanks for the post!",
+      "<b>Note:</b> allow limited safe HTML",
+      '<img src="x" onerror="alert(\'XSS demo — JS executed\')">  (classic payload)'
+    ];
+    let cur = xssSamples[0];
+    const xssPayload = document.getElementById('xssPayload');
+    const xssRender = document.getElementById('xssRender');
+    function xssLoad(i){
+      cur = xssSamples[i];
+      xssPayload.textContent = cur;
+      xssRender.textContent = "(render area)";
+    }
+    function xssUnsafe(){
+      // intentionally unsafe to demonstrate the problem
+      xssRender.innerHTML = cur;
+    }
+    function xssSafe(){
+      // safe: treat as text so it cannot run
+      xssRender.textContent = cur;
+    }
+    xssLoad(0);
+
+    // ----------------------------
+    // CSRF demo (simulated server)
+    // ----------------------------
+    const server = {
+      sessions: {},   // sessionId -> username
+      csrf: {},       // sessionId -> token
+      balances: { alice: 1000 }
+    };
+    let currentSession = null;
+    let pageToken = null;
+
+    const stateDiv = document.getElementById('csrfState');
+    const consoleDiv = document.getElementById('csrfConsole');
+
+    function logCsrf(msg, status){
+      const t = new Date().toLocaleTimeString();
+      const el = document.createElement('div');
+      el.innerHTML = `<strong>[${t}]</strong> ${msg}`;
+      el.style.padding = '4px 0';
+      if(status === true) el.className = 'ok';
+      if(status === false) el.className = 'bad';
+      if(consoleDiv.firstChild) consoleDiv.insertBefore(el, consoleDiv.firstChild);
+      else consoleDiv.appendChild(el);
+    }
+
+    function updateState(){
+      if(!currentSession){
+        stateDiv.textContent = 'Not logged in';
+      } else {
+        const user = server.sessions[currentSession];
+        const bal = server.balances[user];
+        stateDiv.textContent = `Logged in as ${user}. Balance: $${bal}. (page token present)`;
+      }
+    }
+
+    function demoLogin(){
+      const sid = 'sess_' + Math.random().toString(36).slice(2,9);
+      server.sessions[sid] = 'alice';
+      const tok = 'csrf_' + Math.random().toString(36).slice(2,12);
+      server.csrf[sid] = tok;
+      currentSession = sid;
+      pageToken = tok;
+      logCsrf('Logged in as alice. CSRF token created and is available to the page.', true);
+      updateState();
+    }
+
+    function demoLogout(){
+      if(!currentSession){ logCsrf('No active session.', null); return; }
+      delete server.sessions[currentSession];
+      delete server.csrf[currentSession];
+      currentSession = null;
+      pageToken = null;
+      logCsrf('Logged out.', null);
+      updateState();
+    }
+
+    function demoShowBalance(){
+      if(!currentSession || !server.sessions[currentSession]){ logCsrf('Cannot show balance: not logged in.', false); return; }
+      const user = server.sessions[currentSession];
+      logCsrf(`Balance for ${user}: $${server.balances[user]}`, true);
+    }
+
+    function serverTransfer(sessionId, amount, providedToken, requireToken){
+      if(!sessionId || !server.sessions[sessionId]) return { ok:false, err:'not authenticated' };
+      if(requireToken){
+        const expected = server.csrf[sessionId];
+        if(!providedToken || providedToken !== expected) return { ok:false, err:'invalid or missing CSRF token' };
+      }
+      const user = server.sessions[sessionId];
+      const amt = Number(amount);
+      if(isNaN(amt) || amt <= 0) return { ok:false, err:'invalid amount' };
+      server.balances[user] = (server.balances[user]||0) - amt;
+      return { ok:true, balance: server.balances[user] };
+    }
+
+    function demoLegitTransfer(){
+      if(!currentSession || !server.sessions[currentSession]){ logCsrf('Legitimate transfer FAILED: not logged in.', false); return; }
+      const res = serverTransfer(currentSession, 100, pageToken, true);
+      if(res.ok){ logCsrf(`Legitimate transfer of $100 succeeded. New balance: $${res.balance}`, true); updateState(); }
+      else { logCsrf('Legitimate transfer blocked: ' + res.err, false); }
+    }
+
+    function demoAttackerTransfer(){
+      if(!currentSession || !server.sessions[currentSession]){ logCsrf('Attacker attempted transfer but user not logged in — nothing to attack.', false); return; }
+      const attackerToken = null; // attacker cannot read pageToken
+      const res = serverTransfer(currentSession, 1000, attackerToken, true);
+      if(res.ok){ logCsrf('ATTACKER SUCCESS (SHOULD NOT HAPPEN): $1000 transferred!', false); updateState(); }
+      else { logCsrf('Attacker transfer blocked by server: ' + res.err, true); }
+    }
+
+    function demoVulnerableAttack(){
+      if(!currentSession || !server.sessions[currentSession]){ logCsrf('Attacker attempted transfer but user not logged in — nothing to attack.', false); return; }
+      // server does not require token -> attacker succeeds
+      const res = serverTransfer(currentSession, 1000, null, false);
+      if(res.ok){ logCsrf('VULNERABLE SERVER: attacker transfer of $1000 succeeded (no token check).', false); updateState(); }
+      else { logCsrf('Unexpected: vulnerable server blocked attacker: ' + res.err, false); }
+    }
+
+    updateState();
+
+    // ----------------------------
+    // CORS simulation
+    // ----------------------------
+    const corsAllow = ['https://myapp.example','https://partner.example'];
+    const corsDiv = document.getElementById('corsConsole');
+    function corsSim(origin){
+      corsDiv.textContent = '';
+      const t = new Date().toLocaleTimeString();
+      if(corsAllow.indexOf(origin) !== -1){
+        const d = document.createElement('div');
+        d.innerHTML = `<strong>[${t}] 200 OK</strong> — server allowed origin <code>${origin}</code>. Response: {"data":"allowed-for-${origin}"}`;
+        corsDiv.appendChild(d);
+      } else {
+        const d = document.createElement('div');
+        d.innerHTML = `<span class="bad"><strong>[${t}] BLOCKED</strong></span> — server did NOT allow origin <code>${origin}</code>. Browser would block reading the response.`;
+        corsDiv.appendChild(d);
+      }
+    }
+  </script>
+</body>
+</html>

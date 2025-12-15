@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>The WORST Layout Shift Demo</title>
+
+    <!-- DELIBERATE: No viewport meta, bad for mobile -->
+
+    <!-- Massive blocking script in HEAD -->
+    <script>
+      const start = Date.now();
+      while (Date.now() - start < 2500) {
+        Math.sqrt(Math.random());
+      }
+      console.log("Finished blocking main thread (head script)");
+    </script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      header {
+        background: linear-gradient(45deg, #ff0000, #ffa500);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      main {
+        padding: 20px;
+      }
+
+      .hero {
+        margin-bottom: 20px;
+      }
+
+      .hero-title {
+        font-size: 30px;
+        margin-bottom: 10px;
+      }
+
+      .hero-text {
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .call-to-action {
+        margin-top: 20px;
+      }
+
+      .cta-button {
+        padding: 12px 24px;
+        font-size: 18px;
+        cursor: pointer;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+
+      /* HUGE images with no height -> CLS */
+      .huge-image {
+        width: 100%;
+        object-fit: cover;
+      }
+
+      #ad-slot,
+      #extra-stuff-slot {
+        /* empty initially, then filled later (CLS) */
+      }
+
+      .fixed-banner {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.95);
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-size: 13px;
+        z-index: 9999;
+      }
+
+      .fixed-banner button {
+        margin-left: 10px;
+      }
+
+      .blinking {
+        animation: blink 0.7s infinite;
+        color: yellow;
+        font-weight: bold;
+      }
+
+      @keyframes blink {
+        0%   { opacity: 1; }
+        50%  { opacity: 0; }
+        100% { opacity: 1; }
+      }
+
+      .top-insert {
+        background: #ffefef;
+        border-bottom: 2px solid red;
+        padding: 10px;
+        font-size: 14px;
+        text-align: center;
+      }
+
+      .breaking {
+        background: #ffeaa7;
+        border-bottom: 2px solid #d35400;
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      /* Fake chat widget */
+      .chat-widget {
+        position: fixed;
+        right: 10px;
+        bottom: 70px;
+        width: 240px;
+        background: #fff7cc;
+        border: 1px solid #f1c40f;
+        padding: 10px;
+        z-index: 9000;
+      }
+
+      .chat-widget button {
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP SLOT - we will inject stuff ABOVE header later -->
+    <div id="top-slot"></div>
+
+    <header id="page-header">
+      <h1>The WORST Layout Shift Demo</h1>
+      <p class="blinking">
+        Things will keep moving. Try clicking anything. 😈
+      </p>
+    </header>
+
+    <main>
+      <section class="hero">
+        <h2 class="hero-title">Try to click the button below…</h2>
+        <p class="hero-text">
+          This page is designed to torture layout stability:
+          new banners appear above content, the header changes height, text
+          resizes, images change height after loading, and more elements keep
+          getting injected right where you least expect them.
+        </p>
+
+        <!-- HUGE image with no width/height attributes -->
+        <img
+          src="https://picsum.photos/1800/900"
+          alt="Huge random image"
+          class="huge-image"
+          id="main-image"
+        />
+
+        <!-- Ad and extra junk will be injected here (above button) -->
+        <div id="ad-slot"></div>
+        <div id="extra-stuff-slot"></div>
+
+        <div class="call-to-action">
+          <button class="cta-button" id="cta-button">
+            CLICK ME QUICKLY (Before it moves)
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h3>Why this is a CLS disaster</h3>
+        <ul id="reasons-list">
+          <li>Blocking JS in head delays first paint.</li>
+          <li>Huge images with no fixed height push content around.</li>
+          <li>Ad banners get injected above content after delays.</li>
+          <li>Header height randomly changes on scroll and timer.</li>
+          <li>Base font-size changes, shifting all text.</li>
+          <li>Additional “breaking news” bars appear near the top.</li>
+          <li>New images with unknown size get inserted later.</li>
+        </ul>
+      </section>
+    </main>
+
+    <!-- Fixed bottom banner -->
+    <div class="fixed-banner">
+      This website is proudly non-compliant with any UX guideline.
+      <button onclick="alert('You cannot escape bad UX.')">I Accept</button>
+    </div>
+
+    <!-- Fake chat widget -->
+    <div class="chat-widget">
+      <strong>💬 Need fake help?</strong>
+      <p>Our bot is busy causing layout shifts.</p>
+      <button onclick="alert('No real help here.')">Open Chat</button>
+    </div>
+
+    <script>
+      // 1) Inject a top bar ABOVE header after 1.5s (major CLS)
+      setTimeout(() => {
+        const topSlot = document.getElementById("top-slot");
+        const bar = document.createElement("div");
+        bar.className = "top-insert";
+        bar.textContent =
+          "🔥 Flash Sale: This banner appeared AFTER you started reading, pushing everything down.";
+        topSlot.prepend(bar);
+        console.log("Inserted top banner (CLS).");
+      }, 1500);
+
+      // 2) Inject an ad ABOVE the button after 2.5s (moves CTA down)
+      setTimeout(() => {
+        const adSlot = document.getElementById("ad-slot");
+        const ad = document.createElement("div");
+        ad.innerHTML = `
+          <div style="
+            margin: 10px 0;
+            padding: 20px;
+            background: #ffefef;
+            border: 3px dashed red;
+            text-align: center;
+          ">
+            <strong>Sponsored Ad:</strong> Oops, we just moved the button you were aiming for.
+          </div>
+        `;
+        adSlot.prepend(ad);
+        console.log("Injected ad above CTA (CLS).");
+      }, 2500);
+
+      // 3) On EVERY hover over CTA, insert more junk ABOVE it
+      document.getElementById("cta-button").addEventListener("mouseenter", () => {
+        const extraSlot = document.getElementById("extra-stuff-slot");
+        const msg = document.createElement("div");
+        msg.style.margin = "5px 0";
+        msg.style.padding = "10px";
+        msg.style.background = "#e8f7ff";
+        msg.style.border = "1px solid #3498db";
+        msg.textContent =
+          "🔔 New notice: We added yet another thing above this button.";
+        extraSlot.prepend(msg);
+        console.log("Added extra notice above CTA (more CLS).");
+      });
+
+      // 4) Periodically change header padding to make the whole page jump
+      setInterval(() => {
+        const header = document.getElementById("page-header");
+        const randomExtra = Math.floor(Math.random() * 40); // 0–40 extra px
+        header.style.paddingTop = 30 + randomExtra + "px";
+        header.style.paddingBottom = 30 + randomExtra + "px";
+        console.log("Changed header height (CLS).");
+      }, 3000);
+
+      // 5) Randomly change base font size of <body> -> entire layout shifts
+      setInterval(() => {
+        const body = document.body;
+        const randomSize = 14 + Math.floor(Math.random() * 6); // 14–19 px
+        body.style.fontSize = randomSize + "px";
+        console.log("Changed body font-size to", randomSize, "(CLS everywhere).");
+      }, 4000);
+
+      // 6) After image loads, start changing its height periodically
+      const mainImage = document.getElementById("main-image");
+      mainImage.addEventListener("load", () => {
+        console.log("Main image loaded, starting height oscillation.");
+        let big = true;
+        setInterval(() => {
+          if (big) {
+            mainImage.style.height = "150px";
+          } else {
+            mainImage.style.height = "450px";
+          }
+          big = !big;
+          console.log("Toggled main image height (CLS).");
+        }, 3500);
+      });
+
+      // 7) On scroll, sometimes add a "breaking news" bar NEAR TOP
+      let scrollCount = 0;
+      window.addEventListener("scroll", () => {
+        scrollCount++;
+        if (scrollCount % 5 === 0) {
+          const mainEl = document.querySelector("main");
+          const breaking = document.createElement("div");
+          breaking.className = "breaking";
+          breaking.textContent =
+            "📢 Breaking: Content just moved again while you were scrolling.";
+          mainEl.prepend(breaking);
+          console.log("Inserted breaking news bar (CLS).");
+        }
+      });
+
+      // 8) CTA click is also annoying
+      document.getElementById("cta-button").addEventListener("click", () => {
+        alert(
+          "You managed to click it! As a reward: more layout shifts are coming anyway."
+        );
+      });
+
+      // 9) After a delay, add NEW images into the list without fixed size
+      setTimeout(() => {
+        const list = document.getElementById("reasons-list");
+        for (let i = 0; i < 2; i++) {
+          const li = document.createElement("li");
+          li.innerHTML =
+            'New random image loaded late: <img src="https://picsum.photos/600/' +
+            (200 + i * 50) +
+            '" />';
+          list.appendChild(li);
+        }
+        console.log("Appended list items with late-loading images (CLS).");
+      }, 5000);
+    </script>
+  </body>
+</html>
