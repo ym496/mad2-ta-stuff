@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI = f(State) : Video Player</title>
+    <style>
+        :root {
+            --bg: #f4f7f6; --text: #333; --card: #fff; --border: #ddd;
+            --sys: #e74c3c; --app: #2ecc71; --ui: #3498db;
+        }
+        body.dark-mode {
+            --bg: #1a1a2e; --text: #e6e6e6; --card: #16213e; --border: #0f3460;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            background: var(--bg); color: var(--text);
+            margin: 0; padding: 20px; transition: background 0.3s, color 0.3s;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .panels {
+            display: flex; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 30px;
+        }
+        .panel {
+            flex: 1; background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .sys-panel { border-top: 5px solid var(--sys); }
+        .app-panel { border-top: 5px solid var(--app); }
+        .ui-panel { border-top: 5px solid var(--ui); }
+        
+        pre { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; font-size: 0.95em; }
+        .dark-mode pre { background: rgba(255,255,255,0.05); }
+
+        .player-card {
+            width: 100%; max-width: 600px; background: var(--card);
+            border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+            text-align: center;
+        }
+        .screen {
+            height: 200px; background: #000; border-radius: 8px; margin-bottom: 15px;
+            display: flex; flex-direction: column; justify-content: center; color: white;
+            position: relative; overflow: hidden;
+        }
+        .progress-bar {
+            position: absolute; bottom: 0; left: 0; height: 5px; background: var(--sys);
+            width: 0%; transition: width 0.2s linear;
+        }
+        
+        button {
+            padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;
+            font-weight: bold; margin: 5px; transition: 0.2s; font-size: 1em;
+        }
+        button:hover { filter: brightness(0.9); }
+        .btn-play { background: var(--ui); color: white; }
+        .btn-like { background: #e0e0e0; color: #333; }
+        .btn-like.liked { background: var(--sys); color: white; }
+        .btn-theme { background: var(--app); color: white; }
+        .btn-refresh { background: #95a5a6; color: white; }
+
+        .stats {
+            display: flex; justify-content: space-around; margin-top: 15px; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>UI = f(State)</h2>
+    
+    <div class="panels">
+        <div class="panel sys-panel">
+            <h3>🌍 System State</h3>
+            <p><small>Database (Independent of UI)</small></p>
+            <pre id="sys-json"></pre>
+        </div>
+        <div class="panel app-panel">
+            <h3>👤 App State</h3>
+            <p><small>Your Session Data</small></p>
+            <pre id="app-json"></pre>
+        </div>
+        <div class="panel ui-panel">
+            <h3>✨ UI State</h3>
+            <p><small>Ephemeral Visuals</small></p>
+            <pre id="ui-json"></pre>
+        </div>
+    </div>
+
+    <div class="player-card">
+        <div class="screen" id="video-screen">
+            <h3 id="video-status">Paused</h3>
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div>
+            <button class="btn-play" onclick="togglePlay()" id="play-btn">▶ Play</button>
+            <button class="btn-like" onclick="toggleLike()" id="like-btn">🤍 Like</button>
+            <button class="btn-theme" onclick="toggleTheme()">Toggle Theme</button>
+            <button class="btn-refresh" onclick="simulateRefresh()">↻ Refresh Page</button>
+        </div>
+
+        <div class="stats">
+            <span style="color: var(--sys);">👁️ Views: <span id="display-views">0</span></span>
+            <span style="color: var(--sys);">❤️ Likes: <span id="display-likes">0</span></span>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. THE STATES ---
+        // System: Huge, comprehensive, independent of the UI
+        let systemState = { totalViews: 10420, totalLikes: 850 };
+        
+        // App: Session management, user preferences
+        let appState = { theme: "light", hasLiked: false };
+        
+        // UI: Ephemeral, lasting for a short time
+        let uiState = { isPlaying: false, progressPct: 0 };
+
+        let playTimer; // Holds our interval
+
+        // --- 2. THE RENDER FUNCTION (UI = f(state)) ---
+        function updateDOM() {
+            // Update JSON displays
+            document.getElementById('sys-json').innerText = JSON.stringify(systemState, null, 2);
+            document.getElementById('app-json').innerText = JSON.stringify(appState, null, 2);
+            document.getElementById('ui-json').innerText = JSON.stringify(uiState, null, 2);
+
+            // Render UI State (Ephemeral)
+            document.getElementById('play-btn').innerText = uiState.isPlaying ? "⏸ Pause" : "▶ Play";
+            document.getElementById('video-status').innerText = uiState.isPlaying ? "Playing..." : "Paused";
+            document.getElementById('progress-bar').style.width = uiState.progressPct + "%";
+
+            // Render App State (Session)
+            document.body.className = appState.theme === "dark" ? "dark-mode" : "";
+            document.getElementById('like-btn').className = appState.hasLiked ? "btn-like liked" : "btn-like";
+            document.getElementById('like-btn').innerText = appState.hasLiked ? "❤️ Liked" : "🤍 Like";
+
+            // Render System State (Database)
+            document.getElementById('display-views').innerText = systemState.totalViews.toLocaleString();
+            document.getElementById('display-likes').innerText = systemState.totalLikes.toLocaleString();
+        }
+
+        // --- 3. ACTIONS (Mutating State) ---
+        
+        // Action: Play/Pause Video
+        function togglePlay() {
+            uiState.isPlaying = !uiState.isPlaying;
+            
+            if (uiState.isPlaying) {
+                // Video is playing, progress goes up
+                playTimer = setInterval(() => {
+                    uiState.progressPct += 10; // Jump 10% for quick demo
+                    
+                    if (uiState.progressPct >= 100) {
+                        videoFinished();
+                    }
+                    updateDOM();
+                }, 500);
+            } else {
+                clearInterval(playTimer);
+            }
+            updateDOM();
+        }
+
+        // Action: Auto-triggered when progress hits 100%
+        function videoFinished() {
+            clearInterval(playTimer);
+            
+            // 1. Reset UI State
+            uiState.isPlaying = false;
+            uiState.progressPct = 0;
+            
+            // 2. Update System State (The Insight!)
+            systemState.totalViews += 1; 
+        }
+
+        // Action: User clicks Like
+        function toggleLike() {
+            appState.hasLiked = !appState.hasLiked; // Update App State
+            
+            // Update System State based on App State
+            if (appState.hasLiked) {
+                systemState.totalLikes += 1;
+            } else {
+                systemState.totalLikes -= 1;
+            }
+            updateDOM();
+        }
+
+        // Action: User changes theme
+        function toggleTheme() {
+            appState.theme = appState.theme === "light" ? "dark" : "light";
+            updateDOM();
+        }
+
+        // Action: User refreshes page (wipes ephemeral state)
+        function simulateRefresh() {
+            clearInterval(playTimer);
+            
+            // UI state is ephemeral - lasting for a very short time. A refresh wipes it.
+            uiState.isPlaying = false;
+            uiState.progressPct = 0;
+            
+            // Note: In a real app, App State (theme/like) is saved in LocalStorage,
+            // and System State is saved in a database, so they survive a refresh.
+            updateDOM();
+        }
+
+        // Initial Render
+        updateDOM();
+    </script>
+</body>
+</html>

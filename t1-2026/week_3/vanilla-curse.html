@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vanilla JS Concept Tracker</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; background: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 10px; background: #eee; margin-bottom: 5px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        li:hover { background: #e0e0e0; }
+        .mastered { text-decoration: line-through; background: #d5f5e3; color: #27ae60; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>MAD2 Concept Tracker</h2>
+        <h3 id="counter-display">Mastered: 0 / 0</h3>
+        
+        <div class="input-group">
+            <input type="text" id="concept-input" placeholder="Add a concept...">
+            <button id="add-btn">Add</button>
+        </div>
+
+        <ul id="concept-list">
+            </ul>
+    </div>
+
+    <script>
+        // 1. THE STATE
+        let concepts = [
+            { name: "HTTP Statelessness", mastered: false },
+            { name: "DOM Manipulation", mastered: false }
+        ];
+
+        // 2. GRAB DOM ELEMENTS (The tedious part)
+        const listEl = document.getElementById('concept-list');
+        const inputEl = document.getElementById('concept-input');
+        const addBtn = document.getElementById('add-btn');
+        const counterEl = document.getElementById('counter-display');
+
+        // 3. THE RENDER FUNCTION (We have to manually build the UI)
+        function render() {
+            // Clear the list first
+            listEl.innerHTML = '';
+            
+            let masteredCount = 0;
+
+            // Manually loop, create elements, and append them
+            concepts.forEach((concept, index) => {
+                if (concept.mastered) masteredCount++;
+
+                const li = document.createElement('li');
+                li.innerText = concept.name;
+                
+                if (concept.mastered) {
+                    li.classList.add('mastered');
+                }
+
+                // Manually attach event listeners to every new item
+                li.addEventListener('click', () => {
+                    toggleConcept(index);
+                });
+
+                listEl.appendChild(li);
+            });
+
+            // Manually update the text of the counter
+            counterEl.innerText = `Mastered: ${masteredCount} / ${concepts.length}`;
+        }
+
+        // 4. THE ACTIONS
+        function toggleConcept(index) {
+            concepts[index].mastered = !concepts[index].mastered;
+            render(); // We must manually tell the UI to re-draw!
+        }
+
+        addBtn.addEventListener('click', () => {
+            const val = inputEl.value.trim();
+            if (val) {
+                concepts.push({ name: val, mastered: false });
+                inputEl.value = ''; // Manually clear input
+                render(); // Manually re-draw
+            }
+        });
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>

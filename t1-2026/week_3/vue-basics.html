@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 2 Cheatcodes</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <style>
+        :root {
+            --bg-dark: #1e1e2f; --bg-panel: #2a2a40; --vue-green: #41b883;
+            --text-main: #f8f8f2; --text-muted: #a1a1aa; --code-bg: #191924;
+            --accent: #ff79c6; --border: #3f3f5a;
+        }
+        body {
+            font-family: 'Consolas', 'Courier New', monospace; /* Hacker/Code aesthetic */
+            background-color: var(--bg-dark); color: var(--text-main);
+            margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 250px; background-color: var(--bg-panel); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 20px 0; overflow-y: auto;
+        }
+        .sidebar h2 {
+            color: var(--vue-green); text-align: center; font-size: 1.2rem;
+            margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .nav-btn {
+            background: none; border: none; color: var(--text-muted); padding: 15px 20px;
+            text-align: left; font-size: 1.1rem; cursor: pointer; border-left: 4px solid transparent;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .nav-btn:hover { background-color: rgba(65, 184, 131, 0.1); color: var(--text-main); }
+        .nav-btn.active {
+            border-left-color: var(--vue-green); background-color: rgba(65, 184, 131, 0.2);
+            color: var(--vue-green); font-weight: bold;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+        }
+        
+        .header-box { border-bottom: 2px solid var(--vue-green); padding-bottom: 10px; margin-bottom: 10px; }
+        .header-box h1 { margin: 0; color: var(--vue-green); font-size: 2.5rem; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel {
+            background-color: var(--bg-panel); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px;
+        }
+        .panel h3 { margin-top: 0; color: var(--accent); border-bottom: 1px dashed var(--border); padding-bottom: 10px; }
+        
+        pre {
+            background-color: var(--code-bg); padding: 15px; border-radius: 6px;
+            overflow-x: auto; color: #50fa7b; font-size: 0.95rem; line-height: 1.5;
+            border: 1px solid #000;
+        }
+        
+        /* Live Sandbox Styles */
+        .sandbox { border: 2px dashed var(--vue-green); background: #151520; position: relative; }
+        .sandbox::before {
+            content: "LIVE PREVIEW"; position: absolute; top: -12px; left: 15px;
+            background: var(--vue-green); color: #000; padding: 2px 8px;
+            font-size: 0.8rem; font-weight: bold; border-radius: 4px;
+        }
+        
+        /* Sandbox Interactive Elements */
+        .box { width: 100px; height: 100px; background: var(--border); display: inline-block; transition: 0.3s; }
+        .box.active { background: var(--vue-green); transform: scale(1.1); }
+        button, input { padding: 10px; font-family: inherit; background: var(--bg-dark); color: white; border: 1px solid var(--vue-green); cursor: pointer; }
+        button:hover { background: var(--vue-green); color: black; }
+        ul.demo-list { padding-left: 20px; }
+        ul.demo-list li { margin-bottom: 5px; color: #bd93f9; }
+    </style>
+</head>
+<body>
+
+    <div id="app" style="display: flex; width: 100%;">
+        
+        <div class="sidebar">
+            <h2>Vue Cheatcodes</h2>
+            <button v-for="concept in concepts" 
+                    :key="concept.id" 
+                    @click="activeTab = concept.id"
+                    :class="['nav-btn', { active: activeTab === concept.id }]">
+                {{ concept.id }}
+            </button>
+        </div>
+
+        <div class="main-content">
+            
+            <div class="header-box">
+                <h1>{{ currentData.id }}</h1>
+                <p style="font-size: 1.2rem; color: var(--text-muted);">{{ currentData.definition }}</p>
+            </div>
+
+            <div class="info-grid">
+                
+                <div class="panel">
+                    <h3>Technical Usage</h3>
+                    <p>{{ currentData.usage }}</p>
+                    
+                    <h3>Code Snippet</h3>
+                    <pre><code>{{ currentData.snippet }}</code></pre>
+                </div>
+
+                <div class="panel sandbox">
+                    
+                    <div v-if="activeTab === 'v-bind'">
+                        <p>Toggle the data to bind a CSS class dynamically.</p>
+                        <div :class="['box', { active: isBoxActive }]"></div>
+                        <br><br>
+                        <button @click="isBoxActive = !isBoxActive">Toggle isBoxActive</button>
+                        <p>Data State: <code>isBoxActive: {{ isBoxActive }}</code></p>
+                    </div>
+
+                    <div v-if="activeTab === 'v-on'">
+                        <p>Listen to DOM events to trigger methods.</p>
+                        <button @click="clickCount++">Click Me (@click)</button>
+                        <button @mouseenter="clickCount += 10">Hover Me (@mouseenter)</button>
+                        <p>Data State: <code>clickCount: {{ clickCount }}</code></p>
+                    </div>
+
+                    <div v-if="activeTab === 'v-model'">
+                        <p>Two-way data binding on form inputs.</p>
+                        <input v-model="userInput" placeholder="Type something here...">
+                        <h2 style="color: var(--vue-green);">{{ userInput }}</h2>
+                        <p>Data State: <code>userInput: "{{ userInput }}"</code></p>
+                        <button @click="userInput = 'Reset via JS!'">Modify Data via JS</button>
+                    </div>
+
+                    <div v-if="activeTab === 'v-if vs v-show'">
+                        <p>Conditional rendering. Inspect the DOM to see the difference!</p>
+                        <button @click="isVisible = !isVisible">Toggle Visibility</button>
+                        <br><br>
+                        <div v-if="isVisible" style="background: #e74c3c; padding: 10px;">
+                            <strong>v-if:</strong> I am completely removed from the DOM when false.
+                        </div>
+                        <br>
+                        <div v-show="isVisible" style="background: #f1c40f; color: black; padding: 10px;">
+                            <strong>v-show:</strong> I am just hidden via CSS (display: none).
+                        </div>
+                        <p>Data State: <code>isVisible: {{ isVisible }}</code></p>
+                    </div>
+
+                    <div v-if="activeTab === 'v-for'">
+                        <p>Render a list of items based on an array.</p>
+                        <ul class="demo-list">
+                            <li v-for="(item, index) in itemsArray" :key="index">
+                                Index {{ index }}: {{ item }}
+                            </li>
+                        </ul>
+                        <button @click="itemsArray.push('New Item')">Add Item</button>
+                        <button @click="itemsArray.pop()">Remove Item</button>
+                    </div>
+
+                    <div v-if="activeTab === 'computed'">
+                        <p>Derived state that caches automatically.</p>
+                        <input type="number" v-model.number="baseNumber">
+                        <p>Base Number: <code>{{ baseNumber }}</code></p>
+                        <p>Computed Square: <code style="color: var(--accent);">{{ squaredNumber }}</code></p>
+                        <p><i>The squared value updates automatically, but only when baseNumber changes!</i></p>
+                    </div>
+
+                    <div v-if="activeTab === 'watch'">
+                        <p>Perform side effects when data changes.</p>
+                        <input v-model="watchTarget" placeholder="Type 'hello'...">
+                        <p>Data State: <code>watchTarget: "{{ watchTarget }}"</code></p>
+                        <p style="color: #ff5555; font-weight: bold;">{{ watchLog }}</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The Data Dictionary for our Cheatcodes
+        const cheatcodes = [
+            {
+                id: 'v-bind',
+                definition: 'Dynamically bind one or more HTML attributes, or a component prop to an expression.',
+                usage: 'Used when an HTML attribute (like class, style, disabled, src, href) needs to reactively change based on your Vue data. The shorthand is just a colon ( : ).',
+                snippet: `\n<div v-bind:class="{ active: isActive }"></div>\n\n\n<div :class="{ active: isActive }"></div>\n<img :src="imageUrl">\n<button :disabled="isSubmitting">Submit</button>`
+            },
+            {
+                id: 'v-on',
+                definition: 'Attach event listeners to DOM elements.',
+                usage: 'Used to execute JavaScript or trigger methods when a user interacts with the UI (clicks, keypresses, mouse movements). The shorthand is an "at" symbol ( @ ).',
+                snippet: `\n<button v-on:click="doSomething">Click</button>\n\n\n<button @click="doSomething">Click</button>\n<input @keyup.enter="submitForm">`
+            },
+            {
+                id: 'v-model',
+                definition: 'Create two-way data bindings on form inputs, textareas, and components.',
+                usage: 'Used to keep an input field and a Vue data variable perfectly in sync. If the user types, the variable updates. If the code changes the variable, the input updates.',
+                snippet: `<input v-model="message">\n<select v-model="selectedOption">\n  <option>A</option>\n</select>\n\n// In JS:\ndata() {\n  return { message: '', selectedOption: '' }\n}`
+            },
+            {
+                id: 'v-if vs v-show',
+                definition: 'Conditionally render a block of HTML.',
+                usage: 'v-if completely destroys and rebuilds the element in the DOM (higher toggling cost). v-show keeps the element in the DOM but toggles CSS display:none (higher initial render cost).',
+                snippet: `<div v-if="isLoggedIn">\n  Welcome back!\n</div>\n<div v-else>\n  Please log in.\n</div>\n\n<div v-show="isMenuOpen">\n  Toggleable Menu\n</div>`
+            },
+            {
+                id: 'v-for',
+                definition: 'Render a list of items based on an array or object.',
+                usage: 'Loops through data to generate repeated HTML structures. Always require a unique :key attribute to help Vue track element identity for performance.',
+                snippet: `<ul>\n  <li v-for="(item, index) in items" :key="index">\n    {{ index }} - {{ item.name }}\n  </li>\n</ul>`
+            },
+            {
+                id: 'computed',
+                definition: 'Functions that act as reactive data properties based on other data.',
+                usage: 'Used for complex logic, math, or filtering arrays. They are highly efficient because they are cached and ONLY recalculate if their specific dependencies change.',
+                snippet: `data() {\n  return { price: 10, tax: 0.2 }\n},\ncomputed: {\n  finalPrice() {\n    return this.price + (this.price * this.tax);\n  }\n}\n\n\n<p>{{ finalPrice }}</p>`
+            },
+            {
+                id: 'watch',
+                definition: 'Observe and react to changes on a specific data property.',
+                usage: 'Used when you need to perform "side effects" in response to state changes. For example: calling an API when a search term changes, or triggering an animation.',
+                snippet: `data() {\n  return { searchTerm: '' }\n},\nwatch: {\n  // Function name must match data property exactly\n  searchTerm(newValue, oldValue) {\n    this.fetchResultsFromAPI(newValue);\n  }\n}`
+            }
+        ];
+
+        new Vue({
+            el: '#app',
+            data: {
+                activeTab: 'v-bind',
+                concepts: cheatcodes,
+                
+                // Sandbox specific data states
+                isBoxActive: false,
+                clickCount: 0,
+                userInput: '',
+                isVisible: true,
+                itemsArray: ['Apple', 'Banana', 'Cherry'],
+                baseNumber: 5,
+                watchTarget: '',
+                watchLog: 'Watcher is asleep...'
+            },
+            computed: {
+                // Returns the correct documentation object based on active sidebar tab
+                currentData() {
+                    return this.concepts.find(c => c.id === this.activeTab);
+                },
+                // Sandbox specific computed property
+                squaredNumber() {
+                    return this.baseNumber * this.baseNumber;
+                }
+            },
+            watch: {
+                // Sandbox specific watcher
+                watchTarget(newVal) {
+                    if (newVal.toLowerCase() === 'hello') {
+                        this.watchLog = "🚀 Trigger pulled! 'hello' detected!";
+                    } else {
+                        this.watchLog = "Watcher is observing changes...";
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

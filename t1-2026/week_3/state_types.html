@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Three Levels of State</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --card-bg: white;
+            --border-color: #ddd;
+        }
+
+        /* Application State: Theme Toggle (Dark Mode) */
+        body.dark-mode {
+            --bg-color: #1a1a2e;
+            --text-color: #e6e6e6;
+            --card-bg: #16213e;
+            --border-color: #0f3460;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        h1 { margin-bottom: 5px; }
+        .subtitle { margin-bottom: 30px; font-style: italic; color: #7f8c8d; }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            align-items: flex-start;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex: 1;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        /* Distinct colors for the 3 states */
+        .system-card { border-top: 5px solid #e74c3c; } /* Red */
+        .app-card { border-top: 5px solid #2ecc71; }    /* Green */
+        .ui-card { border-top: 5px solid #3498db; }     /* Blue */
+
+        .state-data {
+            background: rgba(0,0,0,0.05);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            min-height: 80px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin: 5px 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            background-color: #95a5a6;
+            color: white;
+        }
+        button:hover { filter: brightness(0.9); }
+        .btn-action { background-color: #3498db; }
+        .btn-app { background-color: #2ecc71; }
+
+        /* UI State specific styles */
+        .tabs { display: flex; margin-bottom: 10px; }
+        .tab { 
+            padding: 5px 10px; 
+            cursor: pointer; 
+            border-bottom: 2px solid transparent; 
+            color: var(--text-color);
+        }
+        .tab.active { border-bottom: 2px solid #3498db; font-weight: bold; }
+        .tab-content { display: none; padding: 10px; border: 1px dashed var(--border-color); }
+        .tab-content.active { display: block; }
+        
+        .loader {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <h1>The Anatomy of State</h1>
+    <div class="subtitle">System vs. Application vs. UI (Ephemeral) State</div>
+
+    <div class="container">
+        
+        <div class="card system-card">
+            <h2>🌍 System State</h2>
+            <p><small>The big database. Completely independent of the frontend/user UI.</small></p>
+            <div class="state-data" id="system-data-display"></div>
+            <p><i>Simulate backend activity:</i></p>
+            <button onclick="simulateRestock()">Restock Inventory (+50)</button>
+        </div>
+
+        <div class="card app-card">
+            <h2>👤 Application State</h2>
+            <p><small>The system as seen by this specific user session.</small></p>
+            <div class="state-data" id="app-data-display"></div>
+            <p><i>User preferences & session:</i></p>
+            <button class="btn-app" onclick="toggleTheme()">Toggle Theme</button>
+            <button class="btn-app" onclick="clearCart()">Empty Cart</button>
+        </div>
+
+        <div class="card ui-card">
+            <h2>✨ UI (Ephemeral) State</h2>
+            <p><small>Short-lived state just for the current view. Lost if you leave the page.</small></p>
+            <div class="state-data" id="ui-data-display"></div>
+            
+            <div style="margin-top: 15px; border: 1px solid var(--border-color); padding: 10px;">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('details')" id="tab-details">Product Details</div>
+                    <div class="tab" onclick="switchTab('reviews')" id="tab-reviews">Reviews</div>
+                </div>
+                
+                <div id="content-details" class="tab-content active">
+                    <p>Awesome MAD2 Course T-Shirt.</p>
+                    <button class="btn-action" id="buy-btn" onclick="purchaseItem()">
+                        Add to Cart <span id="buy-spinner" style="display:none;" class="loader"></span>
+                    </button>
+                </div>
+                
+                <div id="content-reviews" class="tab-content">
+                    <p>⭐⭐⭐⭐⭐ "Great quality!" - Student A</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. SYSTEM STATE ---
+        // Represents the massive database (e.g., all of amazon.in)
+        let systemState = {
+            totalUsersRegistered: 50421,
+            globalInventory_TShirt: 500,
+        };
+
+        // --- 2. APPLICATION STATE ---
+        // Represents the specific user's session (preferences, cart)
+        let applicationState = {
+            userId: "student_88",
+            theme: "light",
+            cartItems: 0
+        };
+
+        // --- 3. UI (EPHEMERAL) STATE ---
+        // Represents short-lived visual statuses
+        let uiState = {
+            activeTab: "details",
+            isPurchasing: false
+        };
+
+        // --- UPDATE DISPLAY FUNCTIONS ---
+        function updateDisplays() {
+            document.getElementById('system-data-display').innerText = JSON.stringify(systemState, null, 2);
+            document.getElementById('app-data-display').innerText = JSON.stringify(applicationState, null, 2);
+            document.getElementById('ui-data-display').innerText = JSON.stringify(uiState, null, 2);
+        }
+
+        // --- ACTIONS ---
+
+        // Action modifying ONLY System State
+        function simulateRestock() {
+            systemState.globalInventory_TShirt += 50;
+            updateDisplays();
+        }
+
+        // Action modifying ONLY Application State
+        function toggleTheme() {
+            applicationState.theme = applicationState.theme === "light" ? "dark" : "light";
+            if(applicationState.theme === "dark") {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            updateDisplays();
+        }
+
+        function clearCart() {
+            applicationState.cartItems = 0;
+            updateDisplays();
+        }
+
+        // Action modifying ONLY UI State
+        function switchTab(tabName) {
+            uiState.activeTab = tabName;
+            
+            // Visual DOM updates based on UI state
+            document.getElementById('tab-details').classList.remove('active');
+            document.getElementById('tab-reviews').classList.remove('active');
+            document.getElementById('content-details').classList.remove('active');
+            document.getElementById('content-reviews').classList.remove('active');
+
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById(`content-${tabName}`).classList.add('active');
+            
+            updateDisplays();
+        }
+
+        // Action modifying ALL THREE states!
+        function purchaseItem() {
+            if(uiState.isPurchasing || systemState.globalInventory_TShirt <= 0) return;
+
+            // 1. Update UI State immediately (show loading spinner)
+            uiState.isPurchasing = true;
+            document.getElementById('buy-spinner').style.display = 'inline-block';
+            document.getElementById('buy-btn').disabled = true;
+            updateDisplays();
+
+            // Simulate network delay to backend
+            setTimeout(() => {
+                // 2. Update System State (global inventory drops)
+                systemState.globalInventory_TShirt -= 1;
+                
+                // 3. Update Application State (user's cart goes up)
+                applicationState.cartItems += 1;
+
+                // 4. Reset UI State (hide spinner)
+                uiState.isPurchasing = false;
+                document.getElementById('buy-spinner').style.display = 'none';
+                document.getElementById('buy-btn').disabled = false;
+                
+                updateDisplays();
+            }, 1500); // 1.5 second delay
+        }
+
+        // Initialize displays
+        updateDisplays();
+    </script>
+</body>
+</html>

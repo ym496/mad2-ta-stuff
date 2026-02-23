@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Statelessness vs. Stateful Applications</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #2c3e50; }
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex: 1;
+            text-align: center;
+        }
+        .stateless { border-top: 5px solid #e74c3c; }
+        .stateful { border-top: 5px solid #2ecc71; }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn-add { background-color: #3498db; color: white; }
+        .btn-add:hover { background-color: #2980b9; }
+        .btn-req { background-color: #f39c12; color: white; }
+        .btn-req:hover { background-color: #d68910; }
+        .btn-reset { background-color: #e74c3c; color: white; }
+        .btn-reset:hover { background-color: #c0392b; }
+        .btn-server { background-color: #9b59b6; color: white; width: 100%; margin-top: 20px; padding: 15px; font-size: 1.1rem;}
+        .btn-server:hover { background-color: #8e44ad; }
+        .cart-display {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .console-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            font-family: monospace;
+            min-height: 120px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>The Shopping Cart Dilemma</h1>
+    <p>Understanding how we overcome the stateless nature of HTTP.</p>
+
+    <div class="container">
+        <div class="card stateless">
+            <h2>Stateless (In-Memory Only)</h2>
+            <p>Data lives in JS variables. Erased on refresh.</p>
+            <div class="cart-display" id="stateless-cart">🛒 0</div>
+            <button class="btn-add" onclick="addStateless()">Add to Cart</button>
+            <button class="btn-req" onclick="simulateStatelessRefresh()">Refresh Page</button>
+            <button class="btn-reset" onclick="resetStateless()">Reset</button>
+        </div>
+
+        <div class="card stateful">
+            <h2>Stateful (Browser Storage)</h2>
+            <p>Data stored in browser. Survives refreshes.</p>
+            <div class="cart-display" id="stateful-cart">🛒 0</div>
+            <button class="btn-add" onclick="addStateful()">Add to Cart</button>
+            <button class="btn-req" onclick="simulateStatefulRefresh()">Refresh Page</button>
+            <button class="btn-reset" onclick="resetStateful()">Reset</button>
+        </div>
+    </div>
+
+    <div style="width: 100%; max-width: 800px;">
+        <button class="btn-server" onclick="sendToServer()">Send Current Data to Server (Checkout)</button>
+    </div>
+
+    <div class="console-output" id="server-console">
+        Waiting for checkout request...
+    </div>
+
+    <script>
+        // --- STATELESS LOGIC ---
+        let statelessItems = 0;
+
+        function addStateless() {
+            statelessItems++;
+            updateStatelessUI();
+        }
+
+        function simulateStatelessRefresh() {
+            statelessItems = 0; // Simulating a page reload wiping the memory
+            updateStatelessUI();
+            logToServer("Stateless UI Refreshed. In-memory data is gone!");
+        }
+
+        function resetStateless() {
+            statelessItems = 0;
+            updateStatelessUI();
+        }
+
+        function updateStatelessUI() {
+            document.getElementById('stateless-cart').innerText = `🛒 ${statelessItems}`;
+        }
+
+
+        // --- STATEFUL LOGIC ---
+        function updateStatefulUI() {
+            let items = sessionStorage.getItem('cartItems') || 0;
+            document.getElementById('stateful-cart').innerText = `🛒 ${items}`;
+        }
+
+        function addStateful() {
+            let currentItems = parseInt(sessionStorage.getItem('cartItems') || 0);
+            sessionStorage.setItem('cartItems', currentItems + 1);
+            updateStatefulUI();
+        }
+
+        function simulateStatefulRefresh() {
+            updateStatefulUI();
+            logToServer(`Stateful UI Refreshed. Data pulled from storage. Cart still has ${sessionStorage.getItem('cartItems') || 0} items.`);
+        }
+
+        function resetStateful() {
+            sessionStorage.setItem('cartItems', 0);
+            updateStatefulUI();
+        }
+
+
+        // --- SERVER COMMUNICATION LOGIC ---
+        function sendToServer() {
+            let statefulData = sessionStorage.getItem('cartItems') || 0;
+            
+            let payload = {
+                user_id: "user_123",
+                data_from_js_memory: statelessItems,  // Proving we can send this!
+                data_from_storage: parseInt(statefulData)
+            };
+            
+            logToServer(`POST /checkout \nPayload sent to server: \n${JSON.stringify(payload, null, 2)}`);
+        }
+
+        function logToServer(message) {
+            const consoleDiv = document.getElementById('server-console');
+            consoleDiv.innerText = `> ${message}`;
+        }
+
+        // Initialize UI on load
+        updateStatefulUI();
+        updateStatelessUI();
+    </script>
+</body>
+</html>
