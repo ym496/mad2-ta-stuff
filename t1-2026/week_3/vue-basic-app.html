@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vue 2 Basics Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2>👋 Vue 2 Basics Demo</h2>
+
+    <!-- Two-way binding -->
+    <input v-model="name" placeholder="Enter your name" />
+    <p>Hello, {{ name || 'stranger' }}!</p>
+
+    <!-- Conditional rendering -->
+    <p v-if="name.length > 5">✅ Your name is quite long!</p>
+    <p v-else>🙂 Short and sweet!</p>
+
+    <!-- Show/hide -->
+    <button @click="showList = !showList">
+      {{ showList ? 'Hide' : 'Show' }} Fruits
+    </button>
+
+    <!-- Loop -->
+    <ul v-show="showList">
+      <li v-for="(fruit, index) in fruits" :key="index">
+        {{ index + 1 }}. {{ fruit }}
+      </li>
+    </ul>
+
+    <!-- Event & Computed -->
+    <button @click="addFruit">Add Fruit 🍎</button>
+    <p>Total fruits: {{ fruitCount }}</p>
+  </div>
+
+  <script>
+    new Vue({
+      el: "#app",
+      data: {
+        name: "",
+        showList: true,
+        fruits: ["Apple", "Banana", "Cherry"]
+      },
+      methods: {
+        addFruit() {
+          this.fruits.push("Fruit " + (this.fruits.length + 1));
+        }
+      },
+      computed: {
+        fruitCount() {
+          return this.fruits.length;
+        }
+      }
+    });
+  </script>
+</body>
+</html>

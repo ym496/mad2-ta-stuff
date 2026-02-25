@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Full-Stack Reactivity Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; background: #1e1e1e; color: #eee; margin: 0; padding: 20px; }
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        
+        .panel { background: #2d2d2d; border-radius: 8px; padding: 20px; border-top: 5px solid; display: flex; flex-direction: column; }
+        .vue-panel { border-color: #41b883; }
+        .net-panel { border-color: #f39c12; }
+        .flask-panel { border-color: #3498db; }
+
+        h3 { margin-top: 0; text-align: center; text-transform: uppercase; font-size: 1rem; letter-spacing: 1px; }
+        .vue-title { color: #41b883; } .net-title { color: #f39c12; } .flask-title { color: #3498db; }
+
+        /* Form Controls */
+        input { width: 90%; padding: 10px; margin-bottom: 10px; background: #1e1e1e; color: #fff; border: 1px solid #555; border-radius: 4px; font-family: monospace; }
+        button { width: 100%; padding: 10px; margin-bottom: 10px; font-weight: bold; cursor: pointer; border: none; border-radius: 4px; transition: 0.2s; }
+        .btn-vue { background: #41b883; color: #000; } .btn-vue:hover { filter: brightness(1.1); }
+        .btn-vue:disabled { background: #555; color: #888; cursor: not-allowed; }
+
+        /* Code Blocks & Logs */
+        .code-window { background: #000; border: 1px solid #444; border-radius: 6px; padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; overflow-x: auto; flex-grow: 1; margin-bottom: 15px; }
+        .code-key { color: #ff79c6; } .code-string { color: #f1fa8c; } .code-num { color: #bd93f9; } .code-comment { color: #6272a4; }
+        
+        /* Dynamic Execution Highlights */
+        .method-block { padding: 10px; border-left: 3px solid transparent; margin-bottom: 5px; transition: 0.3s; font-family: monospace; font-size: 0.85rem; color: #888; }
+        .method-block.active { border-left-color: #41b883; background: rgba(65, 184, 131, 0.1); color: #fff; font-weight: bold; }
+
+        .terminal-line { margin: 2px 0; font-family: monospace; font-size: 0.85rem; }
+        .log-info { color: #8be9fd; } .log-success { color: #50fa7b; } .log-warn { color: #ffb86c; }
+        
+        .pulse { animation: pulseAnim 1.5s infinite; }
+        @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(243, 156, 18, 0); } 100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); } }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align: center; color: #fff;">MAD2: The Full-Stack Reactivity Cycle</h2>
+
+    <div id="app" class="grid-container">
+
+        <div class="panel vue-panel">
+            <h3 class="vue-title">💻 Frontend (Vue.js)</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <input v-model="form.username" placeholder="Username (v-model)" :disabled="isNetworkBusy">
+                <input v-model="form.password" type="password" placeholder="Password (v-model)" :disabled="isNetworkBusy">
+            </div>
+
+            <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Live Vue Data State:</div>
+            <div class="code-window">
+<span class="code-key">data</span>() {
+  <span class="code-key">return</span> {
+    form: {
+      username: <span class="code-string">"{{ form.username }}"</span>,
+      password: <span class="code-string">"{{ '*'.repeat(form.password.length) }}"</span>
+    },
+    token: <span class="code-num">{{ token ? '"' + token.substring(0, 15) + '..."' : 'null' }}</span>,
+    mad2_data: <span class="code-num">{{ fetchedData ? '"' + fetchedData + '"' : 'null' }}</span>
+  }
+}
+            </div>
+
+            <button class="btn-vue" @click="executeLogin" :disabled="isNetworkBusy || token !== null">@click="executeLogin"</button>
+            <button class="btn-vue" @click="executeFetch" :disabled="isNetworkBusy || token === null" style="background: #8be9fd;">@click="executeFetch"</button>
+
+            <div style="font-size: 0.8rem; color: #aaa; margin-top: 10px;">Methods:</div>
+            <div :class="['method-block', { active: activeVueMethod === 'login' }]">
+                executeLogin() {<br>
+                &nbsp;&nbsp;axios.post('/api/login', this.form)<br>
+                }
+            </div>
+            <div :class="['method-block', { active: activeVueMethod === 'fetch' }]">
+                executeFetch() {<br>
+                &nbsp;&nbsp;axios.get('/api/data', { headers })<br>
+                }
+            </div>
+        </div>
+
+
+        <div class="panel net-panel">
+            <h3 class="net-title">🌐 Network (HTTP)</h3>
+            
+            <div :class="['code-window', { pulse: isNetworkBusy }]" style="display: flex; flex-direction: column;">
+                <span class="code-comment">// HTTP Request / Response</span><br>
+                <div v-html="networkOutput"></div>
+            </div>
+        </div>
+
+
+        <div class="panel flask-panel">
+            <h3 class="flask-title">⚙️ Backend (Flask)</h3>
+            
+            <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">Server Logs:</div>
+            <div class="code-window" id="flask-terminal">
+                <div v-for="(log, idx) in flaskLogs" :key="idx" :class="'terminal-line ' + log.type">
+                    {{ log.text }}
+                </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: #aaa; margin-top: 10px;">Active Route Logic:</div>
+            <div :class="['method-block', { active: activeFlaskRoute === 'login' }]">
+                @app.route('/api/login', methods=['POST'])<br>
+                def login():<br>
+                &nbsp;&nbsp;data = request.get_json()<br>
+                &nbsp;&nbsp;# Verify & Generate Token
+            </div>
+            <div :class="['method-block', { active: activeFlaskRoute === 'data' }]">
+                @app.route('/api/data', methods=['GET'])<br>
+                @token_required<br>
+                def get_data():<br>
+                &nbsp;&nbsp;# Return Secure Data
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                // Core Frontend State
+                form: { username: '', password: '' },
+                token: null,
+                fetchedData: null,
+
+                // Visualizer UI State
+                isNetworkBusy: false,
+                activeVueMethod: null,
+                activeFlaskRoute: null,
+                networkOutput: '<span style="color: #6272a4;">Waiting for client request...</span>',
+                flaskLogs: [
+                    { type: 'log-info', text: '* Running on http://127.0.0.1:5000' },
+                    { type: 'log-info', text: '* Waiting for API requests...' }
+                ]
+            },
+            methods: {
+                logToFlask(text, type = 'log-info') {
+                    this.flaskLogs.push({ text, type });
+                    // Auto-scroll terminal
+                    setTimeout(() => {
+                        const term = document.getElementById('flask-terminal');
+                        term.scrollTop = term.scrollHeight;
+                    }, 50);
+                },
+
+                // --- 1. THE LOGIN CYCLE ---
+                executeLogin() {
+                    if (this.form.username === '' || this.form.password === '') return;
+                    
+                    // 1. Vue Method Activates
+                    this.activeVueMethod = 'login';
+                    this.isNetworkBusy = true;
+                    
+                    // 2. Vue Packages the JSON Payload
+                    const payloadString = JSON.stringify(this.form, null, 2);
+                    this.networkOutput = `<strong style="color: #ffb86c;">[POST] /api/login</strong><br><br><span class="code-key">Payload:</span><br><pre style="color: #f1fa8c; margin:0;">${payloadString}</pre>`;
+                    
+                    // 3. Network delay... then hits Flask
+                    setTimeout(() => {
+                        this.activeFlaskRoute = 'login';
+                        this.logToFlask(`--> POST /api/login received`);
+                        
+                        setTimeout(() => {
+                            this.logToFlask(`Executing: data = request.get_json()`, 'log-warn');
+                            this.logToFlask(`Parsed JSON: username='${this.form.username}'`, 'log-info');
+                            
+                            setTimeout(() => {
+                                this.logToFlask(`Validating user credentials... OK`, 'log-success');
+                                this.logToFlask(`Generating JWT Auth Token...`, 'log-warn');
+                                
+                                // 4. Flask creates response and sends back over network
+                                const fakeToken = "eyJhbGciOiJIUzI1Ni.MAD2_" + btoa(this.form.username).substring(0, 10);
+                                const responseString = JSON.stringify({ message: "Success", token: fakeToken }, null, 2);
+                                
+                                this.networkOutput = `<strong style="color: #50fa7b;">[200 OK] Response</strong><br><br><span class="code-key">Body:</span><br><pre style="color: #8be9fd; margin:0;">${responseString}</pre>`;
+                                this.logToFlask(`<-- Sending 200 OK Response`, 'log-success');
+                                this.activeFlaskRoute = null;
+
+                                // 5. Network delay... then Vue processes response
+                                setTimeout(() => {
+                                    this.token = fakeToken; // Reactivity updates the UI immediately!
+                                    this.form.password = ''; // Clear password for security
+                                    
+                                    this.networkOutput = `<span style="color: #6272a4;">// Connection closed. Token stored in Vue state.</span>`;
+                                    this.isNetworkBusy = false;
+                                    this.activeVueMethod = null;
+                                }, 1500);
+
+                            }, 1500);
+                        }, 1000);
+                    }, 1000);
+                },
+
+                // --- 2. THE PROTECTED DATA CYCLE ---
+                executeFetch() {
+                    // 1. Vue Method Activates
+                    this.activeVueMethod = 'fetch';
+                    this.isNetworkBusy = true;
+                    
+                    // 2. Vue attaches the Token to the Headers
+                    this.networkOutput = `<strong style="color: #ffb86c;">[GET] /api/data</strong><br><br><span class="code-key">Headers:</span><br><pre style="color: #bd93f9; margin:0;">{\n  "Authorization": "Bearer ${this.token}"\n}</pre>`;
+                    
+                    // 3. Network delay... then hits Flask
+                    setTimeout(() => {
+                        this.activeFlaskRoute = 'data';
+                        this.logToFlask(`--> GET /api/data received`);
+                        
+                        setTimeout(() => {
+                            this.logToFlask(`Checking request headers for Authorization...`, 'log-warn');
+                            this.logToFlask(`Token verified! Access granted to '${this.form.username}'`, 'log-success');
+                            
+                            setTimeout(() => {
+                                this.logToFlask(`Querying database for protected MAD2 content...`, 'log-info');
+                                
+                                // 4. Flask creates secure JSON response
+                                const responseString = JSON.stringify({ data: "You are officially a MAD2 Full-Stack Dev!" }, null, 2);
+                                
+                                this.networkOutput = `<strong style="color: #50fa7b;">[200 OK] Response</strong><br><br><span class="code-key">Body:</span><br><pre style="color: #8be9fd; margin:0;">${responseString}</pre>`;
+                                this.logToFlask(`<-- Sending 200 OK Response`, 'log-success');
+                                this.activeFlaskRoute = null;
+
+                                // 5. Vue processes response
+                                setTimeout(() => {
+                                    this.fetchedData = "You are officially a MAD2 Full-Stack Dev!";
+                                    this.networkOutput = `<span style="color: #6272a4;">// Connection closed. Data rendered in UI.</span>`;
+                                    this.isNetworkBusy = false;
+                                    this.activeVueMethod = null;
+                                }, 1500);
+
+                            }, 1500);
+                        }, 1000);
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

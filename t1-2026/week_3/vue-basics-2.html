@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue Directives Masterclass</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <style>
+        /* Absolute minimal CSS to keep the focus on Vue */
+        body { font-family: monospace; max-width: 550px; margin: 2rem auto; padding: 0 15px; font-size: 16px; }
+        input, select, button { padding: 8px; font-family: inherit; font-size: 14px; }
+        
+        /* Base row style */
+        .crew-row { padding: 10px; margin: 8px 0; background: #f4f4f4; display: flex; justify-content: space-between; border-left: 5px solid #999; }
+        
+        /* Dynamic classes for v-bind */
+        .role-Muscle { border-left-color: #e74c3c; } /* Red */
+        .role-Hacker { border-left-color: #2ecc71; } /* Green */
+        .role-Driver { border-left-color: #3498db; } /* Blue */
+        
+        .siren { color: red; font-weight: bold; background: #fee; padding: 10px; border: 1px dashed red; }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <h2>🕶️ Rehman Dakait's Crew Recruiter</h2>
+
+        <div style="margin-bottom: 20px;">
+            <input v-model="newRecruit" @keyup.enter="addRecruit" placeholder="Enter name...">
+            <select v-model="selectedRole">
+                <option value="Muscle">Muscle</option>
+                <option value="Hacker">Hacker</option>
+                <option value="Driver">Driver</option>
+            </select>
+            <button @click="addRecruit">Recruit</button>
+        </div>
+
+        <div v-if="policeAlert" class="siren">
+            🚨 ALERT! Undercover cop detected in the input! Abort!
+        </div>
+
+        <p><strong>Crew Status:</strong> {{ heistStatus }} ({{ crew.length }} members)</p>
+
+        <div v-for="(member, index) in crew" :key="index" :class="['crew-row', 'role-' + member.role]">
+            <span><strong>{{ member.name }}</strong> - {{ member.role }}</span>
+            <button @click="kickMember(index)">Kick</button>
+        </div>
+
+        <hr style="margin-top: 30px;">
+
+        <button @click="showPlan = !showPlan">Toggle Secret Master Plan (v-show)</button>
+        <p v-show="showPlan" style="background: #eee; padding: 10px; font-style: italic;">
+            "We hit the vault at midnight. Hackers disable the grid, Muscle handles the guards, Drivers keep the engines running."
+        </p>
+
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                newRecruit: '',
+                selectedRole: 'Muscle',
+                policeAlert: false,
+                showPlan: false,
+                crew: [
+                    { name: 'Raju', role: 'Driver' }
+                ]
+            },
+            
+            // COMPUTED: Perfect for deriving new data from existing data
+            computed: {
+                heistStatus() {
+                    if (this.crew.length === 0) return "We need a crew.";
+                    if (this.crew.length < 3) return "Gathering forces...";
+                    return "🔥 Ready for the Dhurandhar Heist!";
+                }
+            },
+
+            // WATCH: Perfect for "spying" on a variable to trigger side-effects
+            watch: {
+                newRecruit(newText) {
+                    // Spying on the input box as the user types
+                    const text = newText.toLowerCase();
+                    if (text.includes('police') || text.includes('cop') || text.includes('inspector')) {
+                        this.policeAlert = true; // Trigger the v-if siren!
+                    } else {
+                        this.policeAlert = false;
+                    }
+                }
+            },
+
+            methods: {
+                addRecruit() {
+                    if (this.newRecruit.trim() === '' || this.policeAlert) return;
+                    
+                    this.crew.push({
+                        name: this.newRecruit,
+                        role: this.selectedRole
+                    });
+                    
+                    this.newRecruit = ''; // Clear input via two-way binding
+                },
+                kickMember(index) {
+                    this.crew.splice(index, 1);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

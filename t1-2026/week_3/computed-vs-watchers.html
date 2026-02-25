@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vue Computed Properties and Watchers</title>
+  <style>
+    body { 
+      font-family: sans-serif; 
+      line-height: 1.6;
+    }
+    #app {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    input {
+      padding: 5px;
+      margin-left: 10px;
+    }
+    hr {
+      margin: 20px 0;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <h2>🧮 Computed Property Example</h2>
+    <p>First Name: <input v-model="firstName"></p>
+    <p>Last Name: <input v-model="lastName"></p>
+    <p><b>Full Name (computed):</b> {{ fullName }}</p>
+
+    <hr>
+
+    <h2>➕ Mathematical Computed Example</h2>
+    <p>Number 1: <input type="number" v-model.number="num1"></p>
+    <p>Number 2: <input type="number" v-model.number="num2"></p>
+    
+    <ul>
+      <li>Sum: {{ sum }}</li>
+      <li>Difference: {{ difference }}</li>
+      <li>Product: {{ product }}</li>
+      <li>Quotient: {{ quotient }}</li>
+      <li>Square of Sum: {{ squareOfSum }}</li>
+    </ul>
+
+    <hr>
+
+    <h2>👀 Watcher Example</h2>
+    <p>Enter your age: <input v-model.number="age" type="number"></p>
+    <p>{{ message }}</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        firstName: 'Darshan',
+        lastName: 'Ganatra',
+        num1: 5,
+        num2: 3,
+        age: 18,
+        message: 'You’re an adult now! 🎉' // Initial message
+      },
+
+      computed: {
+        // 🔹 Computed property for text-based logic
+        fullName() {
+          console.log("Recomputing fullName...");
+          return this.firstName + ' ' + this.lastName;
+        },
+
+        // 🔹 Computed properties for math
+        sum() {
+          return this.num1 + this.num2;
+        },
+        difference() {
+          return this.num1 - this.num2;
+        },
+        product() {
+          return this.num1 * this.num2;
+        },
+        quotient() {
+          return this.num2 !== 0 ? (this.num1 / this.num2).toFixed(2) : '∞';
+        },
+        squareOfSum() {
+          return Math.pow(this.num1 + this.num2, 2);
+        }
+      },
+
+      watch: {
+        // 👀 Watcher for reactive behavior
+        age(newAge, oldAge) {
+          if (newAge >= 18) {
+            this.message = `You’re an adult now! 🎉`;
+          } else {
+            this.message = `You're still a minor 👶`;
+          }
+          console.log(`Age changed from ${oldAge} → ${newAge}`);
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
