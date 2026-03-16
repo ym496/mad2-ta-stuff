@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <p>{{ message }}</p>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return { message: 'Hello MAD 2!' }
+            },
+            beforeCreate() {
+                // Gets called before the data, methods and watchers are setup[cite: 267].
+                console.log("1. beforeCreate: Data is", this.message); // Will be undefined
+            },
+            created() {
+                // Gets called after setup, but before the instance is mounted[cite: 268].
+                // el will not be available during this event.
+                console.log("2. created: Data is", this.message); // Will print 'Hello MAD 2!'
+                console.log("2. created: Element is", this.$el); // Will be undefined
+            },
+            beforeMount() {
+                // Gets called after the el is available, but before mounting process is completed.
+                console.log("3. beforeMount: Element is", this.$el); // Will show the uncompiled DOM
+            },
+            mounted() {
+                // It's typical to fetch data from backend during Mounted event, but it can also be done during Created event.
+                console.log("4. mounted: Component is fully on screen!");
+            }
+        });
+    </script>
+</body>
+</html>
