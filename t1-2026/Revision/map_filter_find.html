@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Data Transformation Masterclass</title>
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --accent: #818cf8; --text: #f1f5f9;
+            --map: #fb923c; --filter: #4ade80; --find: #38bdf8; --destruct: #f472b6;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 1000px; width: 100%; }
+        
+        /* The Flow Section */
+        .flow-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; align-items: stretch; }
+        .flow-box { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; display: flex; flex-direction: column; }
+        .flow-box h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        
+        /* Code Styling */
+        pre { background: #000; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #a5b4fc; overflow-x: auto; margin: 5px 0; flex-grow: 1; border: 1px solid #1e293b; }
+        .keyword { color: #c678dd; } .func { color: #61afef; } .str { color: #98c379; } .comment { color: #5c6370; font-style: italic; }
+
+        /* Visual Items */
+        .item-preview { background: #fff; color: #000; padding: 10px; border-radius: 6px; font-family: monospace; font-weight: bold; text-align: center; box-shadow: 4px 4px 0 var(--accent); }
+        .item-preview span { display: block; font-size: 0.7rem; color: #64748b; }
+
+        /* Control Buttons */
+        .method-selector { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; }
+        button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; font-size: 1rem; }
+        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
+
+        /* Destructuring Section */
+        .destruct-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; background: #1e1b4b; padding: 25px; border-radius: 15px; border: 2px solid var(--destruct); }
+        .destruct-header { color: var(--destruct); font-size: 1.5rem; margin-bottom: 10px; font-weight: bold; grid-column: span 2; }
+        .pill-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .pill { background: var(--destruct); color: white; padding: 8px 15px; border-radius: 6px; font-weight: bold; animation: pop 0.3s ease-out; }
+        
+        @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header style="text-align: center; margin-bottom: 40px;">
+        <h1>JavaScript Array Factory</h1>
+        <p>A "Before and After" look at data transformation.</p>
+    </header>
+
+    <!-- Method Selection -->
+    <div class="method-selector">
+        <button style="background: var(--map)" onclick="showMap()">Run .map()</button>
+        <button style="background: var(--filter)" onclick="showFilter()">Run .filter()</button>
+        <button style="background: var(--find)" onclick="showFind()">Run .find()</button>
+    </div>
+
+    <!-- BEFORE / CODE / AFTER FLOW -->
+    <div class="flow-container">
+        <!-- STEP 1: BEFORE -->
+        <div class="flow-box">
+            <h3>1. Original Input (Before)</h3>
+            <div id="beforeVisual" style="margin-bottom: 15px;"></div>
+            <pre id="beforeJSON"></pre>
+        </div>
+
+        <!-- STEP 2: THE CODE -->
+        <div class="flow-box">
+            <h3>2. Code Applied</h3>
+            <pre id="appliedCode" style="white-space: pre-wrap; color: #e5c07b;"></pre>
+        </div>
+
+        <!-- STEP 3: AFTER -->
+        <div class="flow-box">
+            <h3>3. Result (After)</h3>
+            <div id="afterVisual" style="margin-bottom: 15px;"></div>
+            <pre id="afterJSON" style="color: #98c379;"></pre>
+        </div>
+    </div>
+
+    <!-- DESTRUCTURING SECTION -->
+    <div class="destruct-grid">
+        <div class="destruct-header">📦 Object Destructuring: The "Unpacker"</div>
+        <div>
+            <p style="margin-top:0">Stop repeating yourself! Instead of <code>item.id</code>, <code>item.val</code>, and <code>item.type</code>, just unpack them into independent variables.</p>
+            <pre>
+<span class="comment">// The FIRST item from your result above:</span>
+<span class="keyword">const</span> item = { id: <span id="d-id-val">?</span>, val: <span id="d-v-val">?</span>, type: <span id="d-t-val">?</span> };
+
+<span class="comment">// 🪄 Destructuring Magic</span>
+<span class="keyword">const</span> { id, val, type } = item;
+
+<span class="func">console</span>.log(type); <span class="comment">// No 'item.' prefix needed!</span></pre>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; font-weight: bold; color: var(--destruct); margin-bottom: 10px;">VARIABLES NOW AVAILABLE:</div>
+            <div id="pills" class="pill-container">
+                <span class="comment">Select a method above to unpack an item...</span>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Add this updated Destructuring Section to your HTML -->
+
+<section class="destruct-grid">
+    <div class="destruct-header">📦 Object Destructuring: Renaming Variables</div>
+    <div>
+        <p style="margin-top:0">Sometimes you don't like the property name in the object. You can rename it while you unpack it!</p>
+        <pre>
+<span class="comment">// The Object:</span>
+<span class="keyword">const</span> item = { id: <span id="d-id-val">101</span>, val: <span id="d-v-val">5</span>, type: <span id="d-t-val">'Gear'</span> };
+
+<span class="comment">// 🪄 Destructuring + Renaming:</span>
+<span class="comment">// Read as: "Get 'val' but call it 'amount'"</span>
+<span class="keyword">const</span> { id, val: <span style="color: #f472b6; font-weight: bold;">amount</span>, type } = item;
+
+<span class="func">console</span>.log(amount); <span class="comment">// Result: 5</span></pre>
+    </div>
+    <div>
+        <div style="font-size: 0.8rem; font-weight: bold; color: var(--destruct); margin-bottom: 10px;">RENAMED VARIABLES:</div>
+        <div id="pills" class="pill-container">
+            <div class="pill" style="background: #334155; border: 1px solid var(--destruct);">id: 101</div>
+            <div class="pill" style="background: #f472b6; color: #fff;">amount: 5 (was 'val')</div>
+            <div class="pill" style="background: #334155; border: 1px solid var(--destruct);">type: 'Gear'</div>
+        </div>
+    </div>
+</section>
+
+<script>
+    const sourceData = [
+        { id: 101, val: 5, type: 'Gear' },
+        { id: 102, val: 12, type: 'Bolt' },
+        { id: 103, val: 8, type: 'Gear' }
+    ];
+
+    function renderInitial() {
+        document.getElementById('beforeJSON').textContent = JSON.stringify(sourceData, null, 2);
+        const visual = document.getElementById('beforeVisual');
+        visual.innerHTML = '';
+        sourceData.forEach(item => {
+            visual.innerHTML += `<div class="item"><span>ID:${item.id}</span>${item.val} ${item.type}</div>`;
+        });
+        // Apply CSS to visual items here to avoid clutter
+        Array.from(visual.children).forEach(el => {
+            el.className = 'item-preview'; el.style.marginBottom = '5px';
+        });
+    }
+
+    function updateFactory(result, code, color) {
+        // Update Code and JSON
+        document.getElementById('appliedCode').textContent = code;
+        document.getElementById('afterJSON').textContent = JSON.stringify(result, null, 2);
+        
+        // Update Visual Result
+        const visual = document.getElementById('afterVisual');
+        visual.innerHTML = '';
+        const resultArray = Array.isArray(result) ? result : [result];
+        
+        resultArray.forEach(item => {
+            if(!item) return;
+            const div = document.createElement('div');
+            div.className = 'item-preview';
+            div.style.boxShadow = `4px 4px 0 ${color}`;
+            div.style.marginBottom = '5px';
+            div.innerHTML = `<span>ID:${item.id}</span>${item.val} ${item.type}`;
+            visual.appendChild(div);
+        });
+
+        // Update Destructuring Section
+        if(resultArray[0]) {
+            const { id, val, type } = resultArray[0]; // Destructuring
+            document.getElementById('d-id-val').textContent = id;
+            document.getElementById('d-v-val').textContent = val;
+            document.getElementById('d-t-val').textContent = `'${type}'`;
+            
+            document.getElementById('pills').innerHTML = `
+                <div class="pill">id: ${id}</div>
+                <div class="pill">val: ${val}</div>
+                <div class="pill">type: '${type}'</div>
+            `;
+        }
+    }
+
+    function showMap() {
+        const res = sourceData.map(item => ({ ...item, val: item.val * 2 }));
+        const code = `// .map() creates a NEW array
+// Transformation: Double the val
+const result = data.map(item => ({
+  ...item,
+  val: item.val * 2
+}));`;
+        updateFactory(res, code, 'var(--map)');
+    }
+
+    function showFilter() {
+        const res = sourceData.filter(item => item.val > 10);
+        const code = `// .filter() creates a NEW array
+// Test: Keep only items > 10
+const result = data.filter(item => 
+  item.val > 10
+);`;
+        updateFactory(res, code, 'var(--filter)');
+    }
+
+    function showFind() {
+        const res = sourceData.find(item => item.type === 'Bolt');
+        const code = `// .find() returns ONLY the 
+// first single object found.
+const result = data.find(item => 
+  item.type === 'Bolt'
+);`;
+        updateFactory(res, code, 'var(--find)');
+    }
+
+    renderInitial();
+</script>
+</body>
+</html>

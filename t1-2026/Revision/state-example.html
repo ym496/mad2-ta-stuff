@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>State Demo</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .item { margin: 10px 0; }
+    button { padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <h2>🛒 Mini Shopping Cart</h2>
+
+  <div id="products"></div>
+  <h3>Your Cart (<span id="cartCount">0</span> items)</h3>
+
+  <script>
+    // ---- SYSTEM STATE ----
+    // Simulate database of all products in the system
+    const systemState = [
+      { id: 1, name: "Perfume A", price: 1200 },
+      { id: 2, name: "Perfume B", price: 950 },
+      { id: 3, name: "Perfume C", price: 1550 }
+    ];
+
+    // ---- APPLICATION STATE ----
+    // User-specific cart (only for this user/session)
+    let applicationState = {
+      cart: []
+    };
+
+    // ---- UI STATE ----
+    // Temporary state for "added" button feedback
+    let uiState = {
+      lastAddedItemId: null
+    };
+
+    // Function to render products
+    function renderProducts() {
+      const div = document.getElementById("products");
+      div.innerHTML = "";
+      systemState.forEach(p => {
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "item";
+        itemDiv.innerHTML = `
+          <b>${p.name}</b> - ₹${p.price}
+          <button onclick="addToCart(${p.id})">
+            ${uiState.lastAddedItemId === p.id ? "✅ Added" : "Add to Cart"}
+          </button>
+        `;
+        div.appendChild(itemDiv);
+      });
+    }
+
+    // Function to add an item to cart
+    function addToCart(id) {
+      const product = systemState.find(p => p.id === id);
+      applicationState.cart.push(product);
+
+      // update UI state temporarily
+      uiState.lastAddedItemId = id;
+      updateCartCount();
+      renderProducts();
+
+      // reset UI feedback after 1 second (ephemeral)
+      setTimeout(() => {
+        uiState.lastAddedItemId = null;
+        renderProducts();
+      }, 1000);
+    }
+
+    // Update cart count in UI
+    function updateCartCount() {
+      document.getElementById("cartCount").textContent =
+        applicationState.cart.length;
+    }
+
+    // Initial render
+    renderProducts();
+  </script>
+</body>
+</html>

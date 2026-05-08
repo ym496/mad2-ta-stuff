@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vue 2 Way - Options API</title>
+    <style>
+        :root {
+            --bg: #0d1117; --panel: #1c2128; --accent: #42b883;
+            --text: #c9d1d9; --html-tag: #7ee787; --js-key: #ff7b72; --js-func: #d2a8ff;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; overflow: hidden; }
+        .master-layout { display: grid; grid-template-columns: 400px 1fr; gap: 20px; height: 95vh; }
+        
+        /* LEFT: THE INTERACTIVE UI (VUE 2 POWERED) */
+        .preview-pane { background: white; color: #1f2328; border-radius: 12px; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 2px solid #d0d7de; border-radius: 6px; font-size: 1rem; }
+        #addBtn { background: #42b883; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        ul { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; border: 1px solid #d0d7de; border-radius: 6px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #d0d7de; background: #fff; }
+        .del-btn { color: #cf222e; cursor: pointer; font-weight: bold; font-size: 1.2rem; }
+
+        /* RIGHT: THE SOURCE CODE */
+        .source-pane { display: grid; grid-template-rows: 1fr 1.2fr; gap: 20px; overflow: hidden; }
+        .editor { background: var(--panel); border: 1px solid #30363d; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-tab { background: #22272e; padding: 10px 20px; font-size: 0.8rem; font-family: monospace; border-bottom: 1px solid #30363d; color: #adbac7; }
+        .code-view { padding: 20px; font-family: 'Consolas', monospace; font-size: 0.9rem; line-height: 1.6; overflow-y: auto; white-space: pre; }
+        
+        .tag { color: var(--html-tag); } .attr { color: #6cb6ff; } .key { color: var(--js-key); } .fn { color: var(--js-func); } .str { color: #96d0ff; } .comment { color: #768390; font-style: italic; }
+        .highlight { background: rgba(66, 184, 131, 0.15); border-left: 4px solid #42b883; margin-left: -20px; padding-left: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="master-layout">
+    <!-- UI COMPONENT (RUNNING VUE 2) -->
+    <div class="preview-pane" id="app">
+        <h2 style="margin-top:0; color:#42b883">Vue 2 Preview</h2>
+        <div class="input-group">
+            <input type="text" v-model="nameInput" placeholder="Enter name..." @keyup.enter="addMember">
+            <button id="addBtn" @click="addMember">Add Member</button>
+        </div>
+        <ul>
+            <li v-for="(member, index) in members" :key="index" class="list-item">
+                <span>{{ member }}</span>
+                <span class="del-btn" @click="removeMember(index)">×</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- CODE VIEWERS -->
+    <div class="source-pane">
+        
+        <!-- HTML VIEW -->
+        <div class="editor">
+            <div class="editor-tab">index.html (Template)</div>
+            <div class="code-view">
+<span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="str">"app"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;input</span> <span class="attr">v-model</span>=<span class="str">"nameInput"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;button</span> <span class="attr">@click</span>=<span class="str">"addMember"</span><span class="tag">&gt;</span>Add<span class="tag">&lt;/button&gt;</span>
+
+  <span class="tag">&lt;ul&gt;</span>
+<div class="highlight">    <span class="tag">&lt;li</span> <span class="attr">v-for</span>=<span class="str">"(name, index) in members"</span><span class="tag">&gt;</span>{{ name }}<span class="tag">&lt;/li&gt;</span></div>  <span class="tag">&lt;/ul&gt;</span>
+<span class="tag">&lt;/div&gt;</span></div>
+        </div>
+
+        <!-- VUE 2 JS VIEW (OPTIONS API) -->
+        <div class="editor">
+            <div class="editor-tab">app.js (Options API)</div>
+            <div class="code-view">
+<span class="key">new</span> <span class="fn">Vue</span>({
+  el: <span class="str">'#app'</span>,
+<div class="highlight">  <span class="fn">data</span>() {
+    <span class="key">return</span> {
+      members: [], <span class="comment">// Reactive State</span>
+      nameInput: <span class="str">''</span>
+    }
+  },</div>
+  methods: {
+<div class="highlight">    <span class="fn">addMember</span>() {
+      <span class="key">this</span>.members.<span class="fn">push</span>(<span class="key">this</span>.nameInput);
+      <span class="key">this</span>.nameInput = <span class="str">''</span>;
+    },</div>    <span class="fn">removeMember</span>(index) {
+      <span class="key">this</span>.members.<span class="fn">splice</span>(index, <span class="num">1</span>);
+    }
+  }
+});</div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Load Vue 2 -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                members: ['Vue 2 Legacy Mode'],
+                nameInput: ''
+            }
+        },
+        methods: {
+            addMember: function() {
+                if (this.nameInput.trim() !== '') {
+                    this.members.push(this.nameInput);
+                    this.nameInput = '';
+                }
+            },
+            removeMember: function(index) {
+                this.members.splice(index, 1);
+            }
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue Inspect Lab - FIXED</title>
+    <style>
+        body { font-family: sans-serif; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 40px; background: #f4f7f6; }
+        .lab-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #42b883; }
+        h2 { margin-top: 0; font-size: 1.1rem; color: #35495e; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        section { margin-bottom: 30px; padding: 15px; background: #fafafa; border-radius: 8px; border: 1px solid #eee; }
+        .box { width: 100px; height: 30px; border-radius: 4px; margin-top: 10px; transition: 0.3s; border: 1px solid #ddd; }
+        .live-text { color: #d2a8ff; font-weight: bold; font-family: monospace; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="lab-card">
+        <h2>🔬 The Interactive DOM</h2>
+
+        <!-- v-model -->
+        <section>
+            <label><strong>1. v-model</strong> (Watch this change!)</label>
+            <input type="text" v-model="message" placeholder="Type here...">
+            <!-- We added this class to make the change OBVIOUS -->
+            <p>Current Data Value: <span class="live-text">{{ message }}</span></p>
+        </section>
+
+        <!-- v-bind -->
+        <section>
+            <label><strong>2. v-bind</strong> (Check the Style Attribute)</label>
+            <div class="box" :style="{ backgroundColor: activeColor }"></div>
+            <button @click="activeColor = 'royalblue'">Set Blue</button>
+            <button @click="activeColor = 'tomato'">Set Red</button>
+        </section>
+
+        <!-- v-if vs v-show -->
+        <section>
+            <label><strong>3. v-if vs v-show</strong></label>
+            <button @click="isAlive = !isAlive">Toggle Me</button>
+            <p v-if="isAlive">🔵 v-if: I am deleted from the HTML tree</p>
+            <p v-show="isAlive">🟢 v-show: I am just hidden with CSS</p>
+        </section>
+    </div>
+
+    <div class="lab-card" style="border-top-color: #35495e;">
+        <h2>🛠 How to verify via Inspect</h2>
+        <p>1. Open <b>Elements</b> tab.</p>
+        <p>2. Select the <code>&lt;span class="live-text"&gt;</code>.</p>
+        <p>3. Type in the input. You will see the text inside the span flash purple/blue in the inspector—that is Vue re-writing the DOM!</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                message: 'Hello World',
+                activeColor: 'royalblue',
+                isAlive: true
+            }
+        });
+    </script>
+</body>
+</html>

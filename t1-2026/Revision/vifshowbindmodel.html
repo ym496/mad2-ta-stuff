@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue 2 Directive Lab</title>
+    <style>
+        :root {
+            --bg: #0d1117; --panel: #1c2128; --vue: #42b883;
+            --text: #c9d1d9; --html-tag: #7ee787; --js-key: #ff7b72; --js-func: #d2a8ff;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; overflow: hidden; }
+        .master-layout { display: grid; grid-template-columns: 450px 1fr; gap: 20px; height: 95vh; }
+        
+        /* LEFT: INTERACTIVE UI */
+        .preview-pane { background: white; color: #1f2328; border-radius: 12px; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; }
+        .directive-box { border: 2px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px; transition: 0.3s; }
+        .active-box { border-color: var(--vue); background: rgba(66, 184, 131, 0.05); }
+        
+        h3 { margin-top: 0; font-size: 0.9rem; color: #64748b; text-transform: uppercase; }
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #d0d7de; border-radius: 4px; box-sizing: border-box; }
+        button { background: var(--vue); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        .box-sample { width: 50px; height: 50px; border-radius: 4px; display: inline-block; transition: 0.3s; }
+
+        /* RIGHT: CODE VIEWER */
+        .source-pane { display: flex; flex-direction: column; overflow: hidden; border-radius: 8px; border: 1px solid #30363d; }
+        .editor-tab { background: #22272e; padding: 10px 20px; font-size: 0.8rem; font-family: monospace; border-bottom: 1px solid #30363d; color: #adbac7; }
+        .code-view { background: var(--panel); padding: 20px; font-family: 'Consolas', monospace; font-size: 0.85rem; line-height: 1.5; overflow-y: auto; flex-grow: 1; white-space: pre; }
+        
+        .tag { color: var(--html-tag); } .attr { color: #6cb6ff; } .key { color: var(--js-key); } .fn { color: var(--js-func); } .str { color: #96d0ff; } .comment { color: #768390; }
+        .highlight { background: rgba(66, 184, 131, 0.15); border-left: 4px solid #42b883; margin-left: -20px; padding-left: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="master-layout">
+    <!-- UI COMPONENT -->
+    <div class="preview-pane" id="app">
+        <!-- V-MODEL -->
+        <div class="directive-box" :class="{'active-box': username}">
+            <h3>v-model (Two-Way Binding)</h3>
+            <input type="text" v-model="username" placeholder="Type your name...">
+            <p>Welcome, <b>{{ username || 'Guest' }}</b></p>
+        </div>
+
+        <!-- V-BIND (UPDATED FOR INTUITION) -->
+        <div class="directive-box">
+            <h3>v-bind (One-Way Binding)</h3>
+            <div class="box-sample" :style="{ backgroundColor: boxColor }"></div>
+            
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">This input is bound via v-bind (:value). Typing here won't change the color below!</p>
+            <input type="text" :value="boxColor" placeholder="Type a color...">
+            
+            <div style="margin-top:10px">
+                <button @click="boxColor = '#58a6ff'">Blue</button>
+                <button @click="boxColor = '#f85149'" style="background:#f85149">Red</button>
+            </div>
+        </div>
+
+        <!-- V-IF vs V-SHOW -->
+        <div class="directive-box">
+            <h3>v-if vs v-show (Conditionals)</h3>
+            <button @click="isVisible = !isVisible">Toggle Visibility</button>
+            <p v-if="isVisible" style="color: #42b883;"><b>v-if:</b> I am physically removed/added to DOM.</p>
+            <p v-show="isVisible" style="color: #58a6ff;"><b>v-show:</b> I just use CSS 'display:none'.</p>
+        </div>
+
+        <!-- V-ON -->
+        <div class="directive-box">
+            <h3>v-on (Events)</h3>
+            <p>Clicks: {{ count }}</p>
+            <button v-on:click="increment">Click Me!</button>
+        </div>
+    </div>
+
+    <!-- CODE VIEWERS -->
+    <div class="source-pane">
+        <div class="editor-tab">App.vue (Complete Template & Logic)</div>
+        <div class="code-view">
+<span class="comment">&lt;!-- HTML TEMPLATE --&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="str">"app"</span><span class="tag">&gt;</span>
+
+  <span class="comment">&lt;!-- 1. v-model: Syncs both ways (Input &lt;-&gt; Data) --&gt;</span>
+  <span class="tag">&lt;input</span> <span class="attr">v-model</span>=<span class="str">"username"</span> <span class="tag">/&gt;</span>
+
+  <span class="comment">&lt;!-- 2. v-bind: Syncs ONE way (Data -&gt; Attribute) --&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">:style</span>=<span class="str">"{ backgroundColor: boxColor }"</span><span class="tag">&gt;&lt;/div&gt;</span>
+  <span class="tag">&lt;input</span> <span class="attr">:value</span>=<span class="str">"boxColor"</span> <span class="tag">/&gt;</span> <span class="comment">&lt;-- Typing here doesn't change boxColor! --&gt;</span>
+
+  <span class="comment">&lt;!-- 3. v-if: Destroys/Creates element --&gt;</span>
+  <span class="tag">&lt;p</span> <span class="attr">v-if</span>=<span class="str">"isVisible"</span><span class="tag">&gt;</span>Now you see me<span class="tag">&lt;/p&gt;</span>
+
+  <span class="comment">&lt;!-- 4. v-show: Toggles CSS display --&gt;</span>
+  <span class="tag">&lt;p</span> <span class="attr">v-show</span>=<span class="str">"isVisible"</span><span class="tag">&gt;</span>Still in DOM, just hidden<span class="tag">&lt;/p&gt;</span>
+
+  <span class="comment">&lt;!-- 5. v-on: Listens for events (Shorthand: @click) --&gt;</span>
+  <span class="tag">&lt;button</span> <span class="attr">v-on:click</span>=<span class="str">"increment"</span><span class="tag">&gt;</span>Add<span class="tag">&lt;/button&gt;</span>
+
+<span class="tag">&lt;/div&gt;</span>
+
+<span class="comment">// JAVASCRIPT LOGIC</span>
+<span class="key">new</span> <span class="fn">Vue</span>({
+  el: <span class="str">'#app'</span>,
+  <span class="fn">data</span>() {
+    <span class="key">return</span> {
+      username: <span class="str">''</span>,
+      boxColor: <span class="str">'#42b883'</span>,
+      isVisible: <span class="key">true</span>,
+      count: <span class="num">0</span>
+    }
+  },
+  methods: {
+    <span class="fn">increment</span>() {
+      <span class="key">this</span>.count++;
+    }
+  }
+});</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                username: '',
+                boxColor: '#42b883',
+                isVisible: true,
+                count: 0
+            }
+        },
+        methods: {
+            increment: function() {
+                this.count++;
+            }
+        }
+    });
+</script>
+</body>
+</html>

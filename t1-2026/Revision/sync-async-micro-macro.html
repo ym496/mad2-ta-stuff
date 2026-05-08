@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Event Loop: The Visual Guide</title>
+    <style>
+        :root {
+            --bg: #0f172a; --card: #1e293b; --sync: #f87171;
+            --micro: #34d399; --macro: #60a5fa; --text: #f1f5f9;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0;
+        }
+        .container { max-width: 900px; width: 100%; }
+        
+        /* New Concept Section */
+        .concept-overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 5px solid #6366f1;
+        }
+        .concept-card h2 { margin-top: 0; font-size: 1.2rem; color: #a5b4fc; }
+        .concept-card p { font-size: 0.95rem; line-height: 1.5; margin: 0; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        
+        /* Code Box */
+        .code-window {
+            background: #000; padding: 20px; border-radius: 12px;
+            border: 1px solid #334155; font-family: 'Consolas', monospace; line-height: 1.5;
+        }
+        .c-sync { color: var(--sync); }
+        .c-micro { color: var(--micro); }
+        .c-macro { color: var(--macro); }
+        .comment { color: #64748b; }
+
+        /* Visualization Area */
+        .viz-panel { background: var(--card); padding: 20px; border-radius: 12px; }
+        .track {
+            height: 50px; border-left: 4px solid #475569; margin: 15px 0;
+            display: flex; align-items: center; padding-left: 10px; position: relative;
+        }
+        .track-label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        
+        .item {
+            padding: 6px 12px; border-radius: 4px; margin-right: 8px;
+            font-weight: bold; font-size: 0.8rem; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: var(--card); border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background: #334155; font-size: 0.9rem; }
+
+        button {
+            width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 8px;
+            background: #3b82f6; color: white; font-weight: bold; cursor: pointer; font-size: 1rem;
+        }
+        button:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header style="text-align: center; margin-bottom: 20px;">
+        <h1>JS Task Priority Explorer</h1>
+        <p>The difference between "Now" and "Later"</p>
+    </header>
+
+    <!-- NEW SECTION: Sync vs Async Explanation -->
+    <div class="concept-overview">
+        <div class="concept-card">
+            <h2>🔄 Synchronous (Sync)</h2>
+            <p>Execution happens <b>line-by-line</b>. JavaScript waits for each task to finish before moving to the next. It "blocks" the thread—if a function takes 10 seconds, the whole page freezes for 10 seconds.</p>
+        </div>
+        <div class="concept-card">
+            <h2>⏳ Asynchronous (Async)</h2>
+            <p>Execution is <b>deferred</b>. JS starts the task, moves it to the background, and continues running other code. When the task is ready, it joins a queue (Micro or Macro) to be finished <b>later</b>.</p>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Section: The Code -->
+        <div class="code-window">
+            <div class="comment">// 1. Sync (Runs Now)</div>
+            <span class="c-sync">console.log("Sync 1");</span><br><br>
+            
+            <div class="comment">// 2. Async Macro (Runs Later)</div>
+            <span class="c-macro">setTimeout(() => console.log("Macro"), 0);</span><br><br>
+            
+            <div class="comment">// 3. Async Micro (Runs "Sooner" Later)</span><br>
+            <span class="c-micro">Promise.resolve().then(() => {<br>&nbsp;&nbsp;console.log("Micro");<br>});</span><br><br>
+            
+            <span class="c-sync">console.log("Sync 2");</span>
+            <button id="runBtn">Execute Code 🚀</button>
+        </div>
+
+        <!-- Section: The Visualization -->
+        <div class="viz-panel">
+            <span class="track-label c-sync">Call Stack (Synchronous)</span>
+            <div id="syncQ" class="track"></div>
+
+            <span class="track-label c-micro">Microtask Queue (Async - High Priority)</span>
+            <div id="microQ" class="track"></div>
+
+            <span class="track-label c-macro">Macrotask Queue (Async - Low Priority)</span>
+            <div id="macroQ" class="track"></div>
+            
+            <div id="consoleOut" style="margin-top:20px; font-family:monospace; color:#10b981; font-size:0.9rem; border-top: 1px solid #334155; padding-top:10px;">
+                Console: _
+            </div>
+        </div>
+    </div>
+
+    <!-- Reference Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Common Examples</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="c-sync"><b>Synchronous</b></td>
+                <td>Immediate</td>
+                <td>`console.log`, `for` loops, Math, Variable assignments.</td>
+            </tr>
+            <tr>
+                <td class="c-micro"><b>Asynchronous</b></td>
+                <td class="c-micro">Microtask</td>
+                <td>`Promise.then()`, `await`, `queueMicrotask`, `MutationObserver`.</td>
+            </tr>
+            <tr>
+                <td class="c-macro"><b>Asynchronous</b></td>
+                <td class="c-macro">Macrotask</td>
+                <td>`setTimeout`, `setInterval`, `fetch` callbacks, Click events.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const runBtn = document.getElementById('runBtn');
+    const syncQ = document.getElementById('syncQ');
+    const microQ = document.getElementById('microQ');
+    const macroQ = document.getElementById('macroQ');
+    const consoleOut = document.getElementById('consoleOut');
+
+    function createTag(text, type) {
+        const span = document.createElement('span');
+        span.className = `item ${type}-box`;
+        span.style.background = `var(--${type})`;
+        span.style.color = type === 'sync' ? 'white' : '#000';
+        span.textContent = text;
+        return span;
+    }
+
+    runBtn.addEventListener('click', () => {
+        syncQ.innerHTML = ''; microQ.innerHTML = ''; macroQ.innerHTML = '';
+        consoleOut.innerHTML = 'Console: ';
+        runBtn.disabled = true;
+
+        const updateLog = (txt) => consoleOut.innerHTML += `<br>> ${txt}`;
+
+        // 1. SYNC
+        syncQ.appendChild(createTag('Sync 1', 'sync'));
+        updateLog('Sync 1');
+
+        // 2. MACRO Scheduling
+        const mNode = createTag('Macro', 'macro');
+        setTimeout(() => {
+            macroQ.appendChild(mNode);
+            updateLog('Macro (Timer Done)');
+            runBtn.disabled = false;
+        }, 800);
+
+        // 3. MICRO Scheduling
+        const miNode = createTag('Micro', 'micro');
+        Promise.resolve().then(() => {
+            microQ.appendChild(miNode);
+            updateLog('Micro (Promise Resolved)');
+        });
+
+        // 4. SYNC CONTINUE
+        syncQ.appendChild(createTag('Sync 2', 'sync'));
+        updateLog('Sync 2');
+    });
+</script>
+</body>
+</html>

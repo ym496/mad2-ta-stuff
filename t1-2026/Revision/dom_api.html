@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Full Stack DOM Lab</title>
+    <style>
+        :root {
+            --bg: #0d1117; --panel: #161b22; --accent: #58a6ff;
+            --text: #c9d1d9; --html-tag: #7ee787; --js-key: #ff7b72; --js-func: #d2a8ff;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; overflow: hidden; }
+        .master-layout { display: grid; grid-template-columns: 400px 1fr; gap: 20px; height: 95vh; }
+        
+        /* LEFT: THE INTERACTIVE UI */
+        .preview-pane { background: white; color: #1f2328; border-radius: 12px; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 2px solid #d0d7de; border-radius: 6px; font-size: 1rem; }
+        #addBtn { background: #238636; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        #user-list { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; border: 1px solid #d0d7de; border-radius: 6px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #d0d7de; background: #fff; transition: background 0.3s; }
+        .del-btn { color: #cf222e; cursor: pointer; font-weight: bold; font-size: 1.2rem; line-height: 1; }
+
+        /* RIGHT: THE SOURCE CODE */
+        .source-pane { display: grid; grid-template-rows: 1fr 1.2fr; gap: 20px; overflow: hidden; }
+        .editor { background: var(--panel); border: 1px solid #30363d; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+        .editor-tab { background: #21262d; padding: 10px 20px; font-size: 0.8rem; font-family: monospace; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; }
+        .code-view { padding: 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.9rem; line-height: 1.6; overflow-y: auto; white-space: pre; }
+        
+        /* Syntax Highlighting */
+        .tag { color: var(--html-tag); }
+        .attr { color: #79c0ff; }
+        .key { color: var(--js-key); }
+        .fn { color: var(--js-func); }
+        .str { color: #a5d6ff; }
+        .comment { color: #8b949e; font-style: italic; }
+
+        /* Live Execution Highlights */
+        .highlight { background: rgba(247, 223, 30, 0.2); border-left: 4px solid #f7df1e; margin-left: -20px; padding-left: 16px; transition: background 0.2s; }
+        .pulse { animation: pulseAnim 0.8s; }
+        @keyframes pulseAnim { 0% { background: rgba(56, 139, 253, 0.4); } 100% { background: transparent; } }
+    </style>
+</head>
+<body>
+
+<div class="master-layout">
+    <!-- UI COMPONENT -->
+    <div class="preview-pane">
+        <h2 style="margin-top:0">DOM Preview</h2>
+        <div class="input-group">
+            <input type="text" id="nameIn" placeholder="Enter name...">
+            <button id="addBtn">Add Member</button>
+        </div>
+        <ul id="user-list"></ul>
+    </div>
+
+    <!-- CODE VIEWERS -->
+    <div class="source-pane">
+        
+        <!-- FULL HTML VIEW -->
+        <div class="editor">
+            <div class="editor-tab">index.html (The Structure) <span id="html-status" style="color:var(--html-tag)">• READY</span></div>
+            <div class="code-view" id="html-editor">
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"app"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;input</span> <span class="attr">id</span>=<span class="str">"nameIn"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;button</span> <span class="attr">id</span>=<span class="str">"addBtn"</span><span class="tag">&gt;</span>Add<span class="tag">&lt;/button&gt;</span>
+
+  <span class="tag">&lt;ul</span> <span class="attr">id</span>=<span class="str">"user-list"</span><span class="tag">&gt;</span><div id="html-dynamic-content" style="color: #a5d6ff;">    <span class="comment">&lt;!-- Dynamic items inject here --&gt;</span></div>  <span class="tag">&lt;/ul&gt;</span>
+<span class="tag">&lt;/div&gt;</span></div>
+        </div>
+
+        <!-- FULL JS VIEW -->
+        <div class="editor">
+            <div class="editor-tab">main.js (The Logic) <span id="js-status" style="color:var(--js-key)">• IDLE</span></div>
+            <div class="code-view" id="js-editor">
+<div id="line1"><span class="key">const</span> btn = <span class="fn">document.querySelector</span>(<span class="str">'#addBtn'</span>);</div><div id="line2"><span class="key">const</span> list = <span class="fn">document.querySelector</span>(<span class="str">'#user-list'</span>);</div>
+<div id="line3">btn.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, () => {</div><div id="line4">  <span class="key">const</span> name = <span class="fn">document.querySelector</span>(<span class="str">'#nameIn'</span>).value;</div><div id="line5">  <span class="key">const</span> li = <span class="fn">document.createElement</span>(<span class="str">'li'</span>);</div><div id="line6">  li.className = <span class="str">'list-item'</span>;</div><div id="line7">  li.innerHTML = <span class="str">`&lt;span&gt;\${name}&lt;/span&gt; &lt;button&gt;×&lt;/button&gt;`</span>;</div><div id="line8">  list.<span class="fn">appendChild</span>(li);</div><div id="line9">});</div></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const addBtn = document.getElementById('addBtn');
+    const nameIn = document.getElementById('nameIn');
+    const userList = document.getElementById('user-list');
+    const htmlDynamic = document.getElementById('html-dynamic-content');
+    const jsStatus = document.getElementById('js-status');
+
+    function highlightJS(lineId) {
+        document.querySelectorAll('.code-view div').forEach(el => el.classList.remove('highlight'));
+        if(lineId) document.getElementById(lineId).classList.add('highlight');
+    }
+
+    addBtn.addEventListener('click', () => {
+        const name = nameIn.value.trim();
+        if(!name) return;
+
+        jsStatus.textContent = "• EXECUTING";
+        
+        // Step 1: Logic Start
+        highlightJS('line4');
+
+        // Step 2: Create Element
+        setTimeout(() => {
+            highlightJS('line5');
+            const li = document.createElement('li');
+            
+            // Step 3: Set Attributes
+            setTimeout(() => {
+                highlightJS('line7');
+                li.className = 'list-item';
+                li.innerHTML = `<span>${name}</span> <span class="del-btn">×</span>`;
+                
+                // Step 4: Append and Update HTML View
+                setTimeout(() => {
+                    highlightJS('line8');
+                    userList.appendChild(li);
+                    updateHTMLSource();
+                    
+                    nameIn.value = '';
+                    setTimeout(() => {
+                        highlightJS(null);
+                        jsStatus.textContent = "• IDLE";
+                    }, 800);
+                }, 500);
+            }, 500);
+        }, 500);
+    });
+
+    // Handle Deletion
+    userList.addEventListener('click', (e) => {
+        if(e.target.classList.contains('del-btn')) {
+            e.target.parentElement.remove();
+            updateHTMLSource();
+        }
+    });
+
+    function updateHTMLSource() {
+        const items = Array.from(userList.children);
+        if(items.length === 0) {
+            htmlDynamic.innerHTML = `    <span class="comment">&lt;!-- Dynamic items inject here --&gt;</span>`;
+            return;
+        }
+
+        let codeStrings = "";
+        items.forEach(item => {
+            const name = item.querySelector('span').textContent;
+            codeStrings += `    <span class="tag">&lt;li</span> <span class="attr">class</span>=<span class="str">"list-item"</span><span class="tag">&gt;</span>\n      <span class="tag">&lt;span&gt;</span>${name}<span class="tag">&lt;/span&gt;</span>\n    <span class="tag">&lt;/li&gt;</span>\n`;
+        });
+        
+        htmlDynamic.innerHTML = codeStrings;
+        htmlDynamic.classList.add('pulse');
+        setTimeout(() => htmlDynamic.classList.remove('pulse'), 800);
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vue 2 Props Example</title>
+  <style>
+    body { font-family: sans-serif; }
+    #app { display: flex; gap: 20px; }
+    .user-badge {
+      border: 2px solid #42b883; /* Vue Green */
+      border-radius: 10px;
+      padding: 15px;
+      width: 200px;
+      text-align: center;
+      background: #f0f9f5;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .user-badge h3 { margin: 0 0 5px 0; }
+    .user-badge p { margin: 0; color: #555; }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <user-badge username="Alice" role="Developer"></user-badge>
+    <user-badge username="Bob" role="Designer"></user-badge>
+    <user-badge 
+      v-bind:username="dynamicUser.name" 
+      v-bind:role="dynamicUser.role">
+    </user-badge>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <script>
+    // 1. Define the Child Component and the props it accepts
+    Vue.component('user-badge', {
+      // The 'props' option lists the data this component can receive from its parent.
+      props: ['username', 'role'],
+      // The template can then use these props just like data properties.
+      template: `
+        <div class="user-badge">
+          <h3>{{ username }}</h3>
+          <p>{{ role }}</p>
+        </div>
+      `
+    });
+
+    // 2. Create the Parent Vue instance
+    new Vue({
+      el: '#app',
+      data: {
+        // This data can be passed down to child components
+        dynamicUser: {
+          name: 'Charlie',
+          role: 'Project Manager'
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
