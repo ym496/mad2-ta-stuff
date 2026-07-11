@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+
+<body>
+    <!--
+    <div id="app">
+        <h2>{{ fullName }}</h2>
+        <h2>{{ fullName }}</h2>
+        <h2>{{ fullName }}</h2>
+
+          <p>{{ fullName() }}</p>
+          <p>{{ fullName() }}</p>
+          <p>{{ fullName() }}</p>
+    </div> -->
+
+
+
+    <!-- <div id="app">
+
+        Price:
+        <input type="number" v-model="price">
+
+        <br><br>
+
+        Quantity:
+        <input type="number" v-model="quantity">
+
+        <h2>Total: ₹{{ total }}</h2>
+
+
+
+    </div> -->
+
+    <!-- Filtering Data -->
+
+    <!-- <div id="app">
+
+        <input v-model="search">
+
+        <ul>
+            <li v-for="student in filteredStudents" :key="student">
+                {{ student }}
+            </li>
+        </ul>
+
+    </div> -->
+
+
+    <!-- watchers in vue -->
+
+    <!-- <div id="app">
+
+        <h2>{{ count }}</h2>
+
+        <button @click="count++">
+            Increment
+        </button>
+
+    </div> -->
+
+
+    <!-- Search Box Example -->
+    <!-- <div id="app">
+
+        <input v-model="search" placeholder="Search">
+
+    </div> -->
+
+
+    <!-- // Why Do We Need Components? -->
+    <!-- Without components: -->
+    <!-- <div class="student-card">
+        <h3>Vinay</h3>
+        <p>Age: 21</p>
+    </div>
+
+    <div class="student-card">
+        <h3>Rahul</h3>
+        <p>Age: 22</p>
+    </div>
+
+    <div class="student-card">
+        <h3>Priya</h3>
+        <p>Age: 20</p>
+    </div> -->
+
+
+    <!-- First Component -->
+    <!-- <div id="app">
+        <hello-world></hello-world>
+    </div> -->
+
+    <!-- <div id="app">
+
+        <student-card></student-card>
+        <student-card></student-card>
+        <student-card></student-card>
+
+    </div> -->
+
+    <!-- First Props Example -->
+    <!-- <div id="app">
+
+        <student-card name="Vinay">
+        </student-card>
+
+        <student-card
+        :name="studentName">
+        </student-card>
+
+    </div> -->
+    <!--
+    <div id="app">
+
+        <student-card :name="student.name" :age="student.age">
+        </student-card>
+
+    </div> -->
+
+
+
+    <!-- <counter-button></counter-button>
+<counter-button></counter-button> -->
+
+    <!-- Mini Project Demo -->
+
+    <!-- <div id="app">
+
+    <student-card
+        v-for="student in students"
+        :key="student.id"
+        :name="student.name"
+        :age="student.age">
+    </student-card>
+
+</div> -->
+
+    <!-- Parent component -->
+<!--
+    <div id="app">
+        <child-component
+            @message-sent="handleMessage">
+
+        </child-component>
+    </div> -->
+
+<!-- <div id="app">
+    <child-component
+        @student-selected="showStudent">
+    </child-component>
+</div> -->
+
+
+    <!-- Basic Slot Example -->
+    <!-- <div id="app">
+    <my-card>
+        <p>This is the content injected into the slot.</p>
+    </my-card>
+</div> -->
+
+    <!-- Multiple Elements in a Slot -->
+    <!-- <my-card>
+
+    <h2>Vinay</h2>
+
+    <p>Age: 21</p>
+
+    <button>View Profile</button>
+
+</my-card> -->
+
+
+    <!-- // Default Slot Content -->
+    <!-- Usage 1 -->
+    <!-- <my-card></my-card> -->
+
+    <!-- Usage 2 -->
+
+    <!-- <my-card>
+    Hello Students
+</my-card> -->
+
+    <!-- Named Slots -->
+
+    <!-- <my-card>
+
+    <template slot="header">
+        <h2>Student Details</h2>
+    </template>
+
+    <p>Vinay Maurya</p>
+
+    <template slot="footer">
+        <button>Edit</button>
+    </template>
+
+</my-card> -->
+
+
+
+<!-- Vue 2 Lifecycle Hooks -->
+
+<!-- <div id="app">
+    <h2>{{ message }}</h2>
+
+    <button @click="changeMessage">
+        Change
+    </button>
+</div> -->
+
+<!-- mount -->
+ <!-- <div id="app">
+
+    <h2 id="title">
+        {{ message }}
+    </h2>
+
+</div> -->
+
+
+<!-- update and beforeUpdate -->
+
+<!-- <div id="app">
+
+    <h2>{{ count }}</h2>
+
+    <button @click="count++">
+        Increment
+    </button>
+
+</div> -->
+
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
